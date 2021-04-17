@@ -10,4 +10,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-void Manager();
+int serve_customer(int socket, int id);
+int get_client_info(int socket, struct clientInformation* c);
+int thread_loop(void* args);
+
+int connect_to_server(char* ip_addr, int port);
+bool valid_ip(char *ip);

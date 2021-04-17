@@ -1,5 +1,5 @@
- #include "functions.h"
  #include "structs.h"
+ #include "functions.h"
 
 #define NUM_THREADS 2
 pthread_mutex_t lock;
@@ -13,39 +13,64 @@ struct customer_queue {
 
 int serve_customer(int socket, int id) {
     struct clientInformation c;
-    struct clientInformation *client = &c;
-    // sleep(2);
     char m[1000];
     snprintf(m,1000,"Hello! My name is THREAD-%d, How may I assist you today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n",id);
-    send(socket, &m, sizeof(m), 0);
-    read(socket, &client->MenuOption, sizeof(client->MenuOption));
-    printf("%d\n",client->MenuOption);
-    if (client->MenuOption == 1) { // make reservation
-        snprintf(m,1000,"Please enter your full name: ");
-        send(socket, &m, sizeof(m), 0);
-        read(socket, &client->ClientName, sizeof(client->ClientName));
-        printf("%s\n",client->ClientName);
-        snprintf(m,1000,"Please enter your date of birth: ");
-        send(socket, &m, sizeof(m), 0);
-        read(socket, &client->DateOfBirth, sizeof(client->DateOfBirth));
-        printf("%s\n",client->DateOfBirth);
-        snprintf(m,1000,"Please enter your gender: ");
-        send(socket, &m, sizeof(m), 0);
-        read(socket, &client->Gender, sizeof(client->Gender));
-        printf("%s\n",client->Gender);
-        snprintf(m,1000,"Please enter your date of GovernmentID number: ");
-        send(socket, &m, sizeof(m), 0);
-        read(socket, &client->GovernmentID, sizeof(client->GovernmentID));
-        printf("%d\n",client->GovernmentID);
-        snprintf(m,1000,"Please enter your desired date of travel: ");
-        send(socket, &m, sizeof(m), 0);
-        read(socket, &client->DateOfTravel, sizeof(client->DateOfTravel));
-        printf("%s\n",client->DateOfTravel);
-        snprintf(m,1000,"Please enter the number of travelers: ");
-        send(socket, &m, sizeof(m), 0);
-        read(socket, &client->NumberOfTravelers, sizeof(client->NumberOfTravelers));
-        printf("%d\n",client->NumberOfTravelers);
+    int flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    if (flag < 0) return -1;
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%d",&c.MenuOption);
+    printf("%d\n",c.MenuOption);
+    if (c.MenuOption == 1) { // make reservation
+        get_client_info(socket,&c);
     }
+    return 0;
+}
+
+int get_client_info(int socket, struct clientInformation* c) {
+    char m[1000];
+    int flag;
+    // send(socket, &success, sizeof(int), 0);
+    strcpy(m,"Please enter your full name: ");
+    flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    if (flag < 0) return -1;
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%50[^\n]",c->ClientName);
+    printf("%s\n",c->ClientName);
+    // send(socket, &success, sizeof(int), 0);
+    strcpy(m,"Please enter your date of birth [MM/DD/YYYY]: ");
+    flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    if (flag < 0) return -1;
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%50[^\n]",c->DateOfBirth);
+    printf("%s\n",c->DateOfBirth);
+    // send(socket, &success, sizeof(int), 0);
+    strcpy(m,"Please enter your gender [M, F, Other]: ");
+    flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    if (flag < 0) return -1;
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%10[^\n]",c->Gender);
+    printf("%s\n",c->Gender);
+    // send(socket, &success, sizeof(int), 0);
+    strcpy(m,"Please enter your date of GovernmentID number: ");
+    flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    if (flag < 0) return -1;
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%d",&c->GovernmentID);
+    printf("%d\n",c->GovernmentID);
+    // send(socket, &success, sizeof(int), 0);
+    strcpy(m,"Please enter your desired date of travel [MM/DD/YYYY]: ");
+    flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    if (flag < 0) return -1;
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%50[^\n]",c->DateOfTravel);
+    printf("%s\n",c->DateOfTravel);
+    // send(socket, &success, sizeof(int), 0);
+    strcpy(m,"Please enter the number of travelers: ");
+    flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    if (flag < 0) return -1;
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%d",&c->NumberOfTravelers);
+    printf("%d\n",c->NumberOfTravelers);
     return 0;
 }
 
@@ -112,13 +137,11 @@ int main(int argc, char const *argv[]) {
         }
     }
     while(1){
-        if ((new_socket = accept(server_fd, (struct sockaddr*) &address,
-                (socklen_t*) &addrlen)) < 0) {
+        if ((new_socket = accept(server_fd, (struct sockaddr*) &address,(socklen_t*) &addrlen)) < 0) {
             perror("Could not accept connection.");
             exit(1);
-        } else {
-            printf("New socket accepted\n");
         }
+        printf("new socket accepted.\n");
         char m[1000];
         pthread_mutex_lock(&lock);
         if (q.waiting < 100) {
