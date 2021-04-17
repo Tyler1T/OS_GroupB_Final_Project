@@ -4,6 +4,8 @@
 #include <string.h>
 #include <ctype.h>
 
+void fileWriter(struct clientInformation *customer);
+
 int main(int argc, char const *argv[]) {
     struct clientInformation c;
     struct clientInformation *info = &c;
@@ -28,7 +30,7 @@ void fileWriter(struct clientInformation *customer){
     fprintf(summary, "%d, ", customer->GovernmentID);
     fprintf(summary, "%s, ", customer->DateOfTravel);
     fprintf(summary, "%d, ", customer->NumberOfTravelers);
-    fprintf(summary, "%d/n", customer->MenuOption);
+    fprintf(summary, "%d\n", customer->MenuOption);
 
 
 
