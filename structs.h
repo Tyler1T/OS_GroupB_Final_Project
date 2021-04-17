@@ -4,10 +4,10 @@
 #define structs
 struct clientInformation{
     char ClientName[50];
-    char DateOfBirth[100];
+    char DateOfBirth[50];
     char Gender[10];
     int GovernmentID;
-    char DateOfTravel[100];
+    char DateOfTravel[50];
     int NumberOfTravelers;
     int MenuOption;
     char seats[100];

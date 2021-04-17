@@ -1,5 +1,5 @@
- #include "functions.h"
- #include "structs.h"
+#include "structs.h"
+#include "functions.h"
 
  bool valid_ip(char *ip) { // return whether a string is a valid ip address
      struct sockaddr_in sa;
@@ -7,7 +7,7 @@
      return result != 0;
  }
 
-int ask_server(char* ip_addr, int port) {
+int connect_to_server(char* ip_addr, int port) {
     int sock = 0;
     struct sockaddr_in serv_addr;
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -40,7 +40,7 @@ int main(int argc, char const *argv[]) {
     // fork();
     // fork();
     // fork();
-    int sock = ask_server(ip_addr,8000+port);
+    int sock = connect_to_server(ip_addr,8000+port);
     if (sock == -1) exit(1);
     char m[1000];
     if (read(sock, &m, sizeof(m)) < 0) {
@@ -49,57 +49,24 @@ int main(int argc, char const *argv[]) {
     }
     printf("%s\n",m);
     int a;
+    char* b;
     read(sock, &a, sizeof(int));
     if (a == -1) exit(0);
     read(sock, &m, sizeof(m));
-    printf("%s\n",m);
-
-    struct clientInformation c;
-    struct clientInformation *client = &c;
-    scanf("%d", &client->MenuOption);
-    send(sock, &client->MenuOption, sizeof(client->MenuOption), 0);
-
-    read(sock, &m, sizeof(m));
     printf("%s",m);
 
-    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
-    scanf("%50[^\n]", client->ClientName);
-    send(sock, &client->ClientName, sizeof(client->ClientName), 0);
+    while (1) {
+        strcpy(m,"");
+        scanf("%100[^\n]",m);
+        while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
+        send(sock, &m, sizeof(m), 0);
 
-    read(sock, &m, sizeof(m));
-    printf("%s",m);
+        // read(sock, &a, sizeof(int));
+        // if (a == -1) exit(0);
 
-    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
-    scanf("%50[^\n]", client->DateOfBirth);
-    send(sock, &client->DateOfBirth, sizeof(client->DateOfBirth), 0);
-
-    read(sock, &m, sizeof(m));
-    printf("%s",m);
-
-    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
-    scanf("%50[^\n]", client->Gender);
-    send(sock, &client->Gender, sizeof(client->Gender), 0);
-
-    read(sock, &m, sizeof(m));
-    printf("%s",m);
-
-    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
-    scanf("%d", &client->GovernmentID);
-    send(sock, &client->GovernmentID, sizeof(client->GovernmentID), 0);
-
-    read(sock, &m, sizeof(m));
-    printf("%s",m);
-
-    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
-    scanf("%50[^\n]", client->DateOfTravel);
-    send(sock, &client->DateOfTravel, sizeof(client->DateOfTravel), 0);
-
-    read(sock, &m, sizeof(m));
-    printf("%s",m);
-
-    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
-    scanf("%d", &client->NumberOfTravelers);
-    send(sock, &client->NumberOfTravelers, sizeof(client->NumberOfTravelers), 0);
+        read(sock, &m, sizeof(m));
+        printf("%s",m);
+    }
 
     return 0;
 }
