@@ -1,7 +1,7 @@
 Final Project Breakdown
 
-Main Server: 
-	Keeps track of what seats are avaliable and what seats are taken by who
+Main Server:
+	Keeps track of what seats are available and what seats are taken by who
 	Talks to Request Server
 	Only one of these
 	Need to implement some sort of semaphore in order to maintain the critical sections
@@ -18,7 +18,7 @@ Customer:
 	Requests seats on the train, if they are available the give your info
 	May change reservation with the Request Servers
 	Can talk with any Request Server
-	Has a manu with the following options:
+	Has a menu with the following options:
 		1. Make a reservation
 		2. Inquiry about the ticket
 		3. Modify the reservation

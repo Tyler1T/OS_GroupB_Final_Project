@@ -4,6 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 
+void modifySummary(struct clientInformation *customer);
 void addNewCustomer(struct clientInformation *customer);
 void changeOldCustomer(struct clientInformation *customer, int line);
 int findCustomer(int ID);
@@ -28,11 +29,11 @@ int main(int argc, char const *argv[]) {
     strcpy(c.DateOfBirth, "6/23/1999");
     strcpy(c.Gender, "Male");
     strcpy(c.DateOfTravel, "1/1/2021");
-    c.GovernmentID = 23;
+    c.GovernmentID = 15;
     c.NumberOfTravelers = 3;
     c.MenuOption = 2;
 
-    addNewCustomer(info);
+    modifySummary(infoB);
 
     return 0;
 }
@@ -58,11 +59,18 @@ void addNewCustomer(struct clientInformation *customer){
 
 
 /*
-    The changeOldCustomer function will take a returning customers information and changed what
-    they have in the summary file to reflect the newer information
+    The changeOldCustomer function will take a returning customers information
+    and changed what they have in the summary file to reflect the newer
+    information
 */
 void changeOldCustomer(struct clientInformation *customer, int line){
-    FILE* summary = fopen("Summary.txt", "r");
+    FILE* summary = fopen("Summary.txt", "w");
+    char buffer[1024];
+    int counter;
+    while(counter != line){
+        fgets(buffer, 1024, summary);
+    }
+
 
     fprintf(summary, "%s, ", customer->ClientName);
     fprintf(summary, "%s, ", customer->DateOfBirth);
@@ -104,6 +112,7 @@ int findCustomer(int ID){
     returning customer that is changing their information
 */
 void modifySummary(struct clientInformation *customer){
-    if(findCustomer(customer->GovernmentID) < 0) addNewCustomer(customer);
-    else changeOldCustomer(customer);
+    int found = findCustomer(customer->GovernmentID);
+    if(found < 0) addNewCustomer(customer);
+    else changeOldCustomer(customer, found);
 }
