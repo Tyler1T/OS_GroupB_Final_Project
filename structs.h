@@ -9,6 +9,6 @@ struct clientInformation{
     int GovernmentID;
     char DateOfTravel[100];
     int NumberOfTravelers;
-    char MenuOption[10];
+    int MenuOption;
 }__attribute__((packed))clientInformation;
 #endif

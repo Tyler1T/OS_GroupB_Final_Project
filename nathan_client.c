@@ -1,20 +1,5 @@
-/*  Group B
- *  Client Driver File
- *  Authors: nathan_baker
- *  Email: nathan.t.baker@okstate.edu
- */
-
- #include <stdio.h>
- #include <stdlib.h>
- #include <sys/socket.h>
- #include <arpa/inet.h>
- #include <unistd.h>
- #include <string.h>
- #include <stdbool.h>
- #include <fcntl.h>
- #include <sys/stat.h>
- #include <sys/types.h>
- #include <sys/wait.h>
+ #include "functions.h"
+ #include "structs.h"
 
  bool valid_ip(char *ip) { // return whether a string is a valid ip address
      struct sockaddr_in sa;
@@ -52,27 +37,37 @@ int main(int argc, char const *argv[]) {
     char ip_addr[15];
     strcpy(ip_addr,"127.0.0.1"); // LOCALHOST
 
-    fork();
-    fork();
-    fork();
+    // fork();
+    // fork();
+    // fork();
     int sock = ask_server(ip_addr,8000+port);
     if (sock == -1) exit(1);
-    char m[100];
+    char m[1000];
     if (read(sock, &m, sizeof(m)) < 0) {
         printf("\nread error.\n");
         return -1;
     }
     printf("%s\n",m);
     int a;
-    if (read(sock, &a, sizeof(int)) < 0) {
-        printf("\nread error.\n");
-        return -1;
-    }
+    read(sock, &a, sizeof(int));
     if (a == -1) exit(0);
-    if (read(sock, &m, sizeof(m)) < 0) {
-        printf("\nread error.\n");
-        return -1;
-    }
+    read(sock, &m, sizeof(m));
     printf("%s\n",m);
+
+    struct clientInformation c;
+    struct clientInformation *client = &c;
+    scanf("%d", &client->MenuOption);
+    send(sock, &client->MenuOption, sizeof(client->MenuOption), 0);
+
+    read(sock, &m, sizeof(m));
+    printf("%s",m);
+
+    int cc;
+    while ((cc = getchar()) != '\n' && cc != EOF) { } // flush input steam.
+
+    scanf("%50[^\n]", client->ClientName);
+
+    send(sock, &client->ClientName, sizeof(client->ClientName), 0);
+
     return 0;
 }
