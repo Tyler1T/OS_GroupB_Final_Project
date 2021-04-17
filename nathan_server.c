@@ -1,19 +1,7 @@
-/*  Group B
- *  Server Driver File
- *  Authors: nathan_baker
- *  Email: nathan.t.baker@okstate.edu
- */
+ #include "functions.h"
+ #include "structs.h"
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <string.h>
-#include <pthread.h>
-
-#define NUM_THREADS 6
+#define NUM_THREADS 2
 pthread_mutex_t lock;
 
 struct customer_queue {
@@ -24,11 +12,20 @@ struct customer_queue {
 };
 
 int serve_customer(int socket, int id) {
-    sleep(2);
-    char m[100];
-    snprintf(m,100,"Hello! My name is THREAD-%d, How may I assist you today?",id);
+    struct clientInformation c;
+    struct clientInformation *client = &c;
+    // sleep(2);
+    char m[1000];
+    snprintf(m,1000,"Hello! My name is THREAD-%d, How may I assist you today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n",id);
     send(socket, &m, sizeof(m), 0);
-    printf("sent.\n");
+    read(socket, &client->MenuOption, sizeof(client->MenuOption));
+    printf("%d\n",client->MenuOption);
+    if (client->MenuOption == 1) { // make reservation
+        snprintf(m,1000,"Please enter your full name: ");
+        send(socket, &m, sizeof(m), 0);
+        read(socket, &client->ClientName, sizeof(client->ClientName));
+        printf("%s\n",client->ClientName);
+    }
     return 0;
 }
 
@@ -102,7 +99,7 @@ int main(int argc, char const *argv[]) {
         } else {
             printf("New socket accepted\n");
         }
-        char m[100];
+        char m[1000];
         pthread_mutex_lock(&lock);
         if (q.waiting < 100) {
             q.sockets[q.first+q.waiting] = new_socket;
