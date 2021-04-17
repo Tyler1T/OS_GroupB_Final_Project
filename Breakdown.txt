@@ -1,7 +1,7 @@
 Final Project Breakdown
 
-Main Server: 
-	Keeps track of what seats are avaliable and what seats are taken by who
+Main Server:
+	Keeps track of what seats are available and what seats are taken by who
 	Talks to Request Server
 	Only one of these
 	Need to implement some sort of semaphore in order to maintain the critical sections
