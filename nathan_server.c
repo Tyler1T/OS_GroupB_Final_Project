@@ -25,6 +25,26 @@ int serve_customer(int socket, int id) {
         send(socket, &m, sizeof(m), 0);
         read(socket, &client->ClientName, sizeof(client->ClientName));
         printf("%s\n",client->ClientName);
+        snprintf(m,1000,"Please enter your date of birth: ");
+        send(socket, &m, sizeof(m), 0);
+        read(socket, &client->DateOfBirth, sizeof(client->DateOfBirth));
+        printf("%s\n",client->DateOfBirth);
+        snprintf(m,1000,"Please enter your gender: ");
+        send(socket, &m, sizeof(m), 0);
+        read(socket, &client->Gender, sizeof(client->Gender));
+        printf("%s\n",client->Gender);
+        snprintf(m,1000,"Please enter your date of GovernmentID number: ");
+        send(socket, &m, sizeof(m), 0);
+        read(socket, &client->GovernmentID, sizeof(client->GovernmentID));
+        printf("%d\n",client->GovernmentID);
+        snprintf(m,1000,"Please enter your desired date of travel: ");
+        send(socket, &m, sizeof(m), 0);
+        read(socket, &client->DateOfTravel, sizeof(client->DateOfTravel));
+        printf("%s\n",client->DateOfTravel);
+        snprintf(m,1000,"Please enter the number of travelers: ");
+        send(socket, &m, sizeof(m), 0);
+        read(socket, &client->NumberOfTravelers, sizeof(client->NumberOfTravelers));
+        printf("%d\n",client->NumberOfTravelers);
     }
     return 0;
 }

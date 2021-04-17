@@ -62,12 +62,44 @@ int main(int argc, char const *argv[]) {
     read(sock, &m, sizeof(m));
     printf("%s",m);
 
-    int cc;
-    while ((cc = getchar()) != '\n' && cc != EOF) { } // flush input steam.
-
+    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
     scanf("%50[^\n]", client->ClientName);
-
     send(sock, &client->ClientName, sizeof(client->ClientName), 0);
+
+    read(sock, &m, sizeof(m));
+    printf("%s",m);
+
+    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
+    scanf("%50[^\n]", client->DateOfBirth);
+    send(sock, &client->DateOfBirth, sizeof(client->DateOfBirth), 0);
+
+    read(sock, &m, sizeof(m));
+    printf("%s",m);
+
+    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
+    scanf("%50[^\n]", client->Gender);
+    send(sock, &client->Gender, sizeof(client->Gender), 0);
+
+    read(sock, &m, sizeof(m));
+    printf("%s",m);
+
+    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
+    scanf("%d", &client->GovernmentID);
+    send(sock, &client->GovernmentID, sizeof(client->GovernmentID), 0);
+
+    read(sock, &m, sizeof(m));
+    printf("%s",m);
+
+    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
+    scanf("%50[^\n]", client->DateOfTravel);
+    send(sock, &client->DateOfTravel, sizeof(client->DateOfTravel), 0);
+
+    read(sock, &m, sizeof(m));
+    printf("%s",m);
+
+    while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
+    scanf("%d", &client->NumberOfTravelers);
+    send(sock, &client->NumberOfTravelers, sizeof(client->NumberOfTravelers), 0);
 
     return 0;
 }
