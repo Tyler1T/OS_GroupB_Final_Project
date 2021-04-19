@@ -2,7 +2,7 @@
 
 to compile:
     gcc client.c -o client
-    gcc server.c TrainSeatChecker.c -o server -pthread
+    gcc server.c TrainSeatChecker.c Summary.c -o server -pthread
 
 to run:
     ./server 2
