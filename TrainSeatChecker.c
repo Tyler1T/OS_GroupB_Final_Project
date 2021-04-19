@@ -3,7 +3,7 @@
  #include "functions.h"
  #include "structs.h"
 
-int seatChecker()
+int seatChecker(int trainNum)
 {
    FILE *fp ;
    char c;
@@ -11,7 +11,14 @@ int seatChecker()
 
 
    printf( "Opening the file train in read mode \n" ) ;
-   fp = fopen ( "train", "r" ) ; // opening an existing file
+   if (trainNum == 0)
+   {
+   	fp = fopen ( "train1", "r" ) ; // opening an existing file
+   }
+   else if (trainNum == 1)
+   {
+   	fp = fopen ( "train2", "r" ) ; // opening an existing file
+   }
    if ( fp == NULL )
    {
      printf ( "Could not open file train \n" ) ;
