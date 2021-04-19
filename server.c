@@ -28,6 +28,14 @@ int serve_customer(int socket, int id) {
     printf("%d\n",c.MenuOption);
     if (c.MenuOption == 1) { // make reservation
         get_client_info(socket,&c);
+        int train;
+        if (strcmp(c.DateOfTravel,"01/01/2021") == 0) train = 0;
+        else if (strcmp(c.DateOfTravel,"01/02/2021") == 0) train = 1;
+        else {
+            strcpy(m,"Sorry, there is no train available for the selected date.\nIf you'd like to send another request, please reconnect and start again.\n");
+            send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+            send(socket, &error, sizeof(int), 0);
+        }
         int available = seatChecker(0);
         if ((c.NumberOfTravelers) > seatChecker(0)) {
             snprintf(m,1000,"Sorry, there are only %d seats availble for the selected date.\nIf you'd like to send another request, please reconnect and start again.\n",seatChecker(0));

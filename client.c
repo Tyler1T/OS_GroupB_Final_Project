@@ -61,7 +61,7 @@ int main(int argc, char const *argv[]) {
 
     while (1) {
         strcpy(m,"");
-        scanf("%100[^\n]",m);
+        scanf("%1000[^\n]",m);
         while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
         send(sock, &m, sizeof(m), 0);
 
