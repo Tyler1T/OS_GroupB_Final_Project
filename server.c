@@ -26,6 +26,7 @@ int serve_customer(int socket, int id) {
     printf("%d\n",c.MenuOption);
     if (c.MenuOption == 1) { // make reservation
         get_client_info(socket,&c);
+        
     }
     return 0;
 }
