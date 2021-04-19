@@ -10,6 +10,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#ifndef functions
+#define functions
+
 int seatChecker();
 int serve_customer(int socket, int id);
 int get_client_info(int socket, struct clientInformation* c);
@@ -24,3 +27,5 @@ void modifySummary(struct clientInformation *customer);
 void addNewCustomer(struct clientInformation *customer);
 void changeOldCustomer(struct clientInformation *customer, int line);
 int findCustomer(int ID);
+
+#endif functions
