@@ -9,7 +9,7 @@ void addNewCustomer(struct clientInformation *customer);
 void changeOldCustomer(struct clientInformation *customer, int line);
 int findCustomer(int ID);
 
-
+/*
 int main(int argc, char const *argv[]) {
     struct clientInformation c;
     struct clientInformation *info = &c;
@@ -36,7 +36,7 @@ int main(int argc, char const *argv[]) {
     modifySummary(infoB);
 
     return 0;
-}
+}*/
 
 
 /*
