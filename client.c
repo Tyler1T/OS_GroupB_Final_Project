@@ -65,8 +65,8 @@ int main(int argc, char const *argv[]) {
         while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
         send(sock, &m, sizeof(m), 0);
 
-        // read(sock, &a, sizeof(int));
-        // if (a == -1) exit(0);
+        read(sock, &a, sizeof(int));
+        if (a == -1) exit(0);
 
         read(sock, &m, sizeof(m));
         printf("%s",m);

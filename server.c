@@ -18,6 +18,8 @@ struct customer_queue {
 int serve_customer(int socket, int id) {
     struct clientInformation c;
     char m[1000];
+    int success = 0;
+    int error = -1;
     snprintf(m,1000,"Hello! My name is THREAD-%d, How may I assist you today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n",id);
     int flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     if (flag < 0) return -1;
@@ -26,7 +28,12 @@ int serve_customer(int socket, int id) {
     printf("%d\n",c.MenuOption);
     if (c.MenuOption == 1) { // make reservation
         get_client_info(socket,&c);
-        
+        int available = seatChecker(0);
+        if ((c.NumberOfTravelers) > seatChecker(0)) {
+            snprintf(m,1000,"Sorry, there are only %d seats availble for the selected date.\nIf you'd like to send another request, please reconnect and start again.\n",seatChecker(0));
+            send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+            send(socket, &error, sizeof(int), 0);
+        }
     }
     return 0;
 }
@@ -34,42 +41,44 @@ int serve_customer(int socket, int id) {
 int get_client_info(int socket, struct clientInformation* c) {
     char m[1000];
     int flag;
-    // send(socket, &success, sizeof(int), 0);
+    int success = 0;
+    int error = -1;
+    send(socket, &success, sizeof(int), 0);
     strcpy(m,"Please enter your full name: ");
     flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     if (flag < 0) return -1;
     read(socket, &m, sizeof(m));
     sscanf(m,"%50[^\n]",c->ClientName);
     printf("%s\n",c->ClientName);
-    // send(socket, &success, sizeof(int), 0);
+    send(socket, &success, sizeof(int), 0);
     strcpy(m,"Please enter your date of birth [MM/DD/YYYY]: ");
     flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     if (flag < 0) return -1;
     read(socket, &m, sizeof(m));
     sscanf(m,"%50[^\n]",c->DateOfBirth);
     printf("%s\n",c->DateOfBirth);
-    // send(socket, &success, sizeof(int), 0);
+    send(socket, &success, sizeof(int), 0);
     strcpy(m,"Please enter your gender [M, F, Other]: ");
     flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     if (flag < 0) return -1;
     read(socket, &m, sizeof(m));
     sscanf(m,"%10[^\n]",c->Gender);
     printf("%s\n",c->Gender);
-    // send(socket, &success, sizeof(int), 0);
+    send(socket, &success, sizeof(int), 0);
     strcpy(m,"Please enter your date of GovernmentID number: ");
     flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     if (flag < 0) return -1;
     read(socket, &m, sizeof(m));
     sscanf(m,"%d",&c->GovernmentID);
     printf("%d\n",c->GovernmentID);
-    // send(socket, &success, sizeof(int), 0);
+    send(socket, &success, sizeof(int), 0);
     strcpy(m,"Please enter your desired date of travel [MM/DD/YYYY]: ");
     flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     if (flag < 0) return -1;
     read(socket, &m, sizeof(m));
     sscanf(m,"%50[^\n]",c->DateOfTravel);
     printf("%s\n",c->DateOfTravel);
-    // send(socket, &success, sizeof(int), 0);
+    send(socket, &success, sizeof(int), 0);
     strcpy(m,"Please enter the number of travelers: ");
     flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     if (flag < 0) return -1;
