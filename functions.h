@@ -19,3 +19,8 @@ int main(int argc, char const *argv[]);
 int connect_to_server(char* ip_addr, int port);
 bool valid_ip(char *ip);
 int main(int argc, char const *argv[]);
+
+void modifySummary(struct clientInformation *customer);
+void addNewCustomer(struct clientInformation *customer);
+void changeOldCustomer(struct clientInformation *customer, int line);
+int findCustomer(int ID);
