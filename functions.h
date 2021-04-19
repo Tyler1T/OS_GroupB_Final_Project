@@ -28,4 +28,4 @@ void addNewCustomer(struct clientInformation *customer);
 void changeOldCustomer(struct clientInformation *customer, int line);
 int findCustomer(int ID);
 
-#endif functions
+#endif
