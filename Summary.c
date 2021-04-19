@@ -9,6 +9,14 @@ void addNewCustomer(struct clientInformation *customer);
 void changeOldCustomer(struct clientInformation *customer, int line);
 int findCustomer(int ID);
 
+/**
+ * Author: Tyler Tucker
+ * Email: <tyler.m.tucker@okstate.edu>
+ * Date: April 19th, 2020
+ * Program Description: This file takes input from the server and then
+    determines if a customer is in the summary file or not
+ */
+
 /*
 int main(int argc, char const *argv[]) {
     struct clientInformation c;
