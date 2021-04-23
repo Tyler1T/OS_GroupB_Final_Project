@@ -47,17 +47,18 @@ int main(int argc, char const *argv[]) {
     int sock = connect_to_server(ip_addr,8000+port);
     if (sock == -1) exit(1);
     char m[1000];
-    if (read(sock, &m, sizeof(m)) < 0) {
-        printf("\nread error.\n");
-        return -1;
-    }
-    printf("%s\n",m);
-    int a;
-    char* b;
-    read(sock, &a, sizeof(int));
-    if (a == -1) exit(0);
+
     read(sock, &m, sizeof(m));
+    char a = m[0];
+    memmove(m, m+1, 1000);
     printf("%s",m);
+    if (a == '1') exit(0);
+
+    read(sock, &m, sizeof(m));
+    a = m[0];
+    memmove(m, m+1, 1000);
+    printf("%s",m);
+    if (a == '1') exit(0);
 
     while (1) {
         strcpy(m,"");
@@ -65,11 +66,11 @@ int main(int argc, char const *argv[]) {
         while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
         send(sock, &m, sizeof(m), 0);
 
-        read(sock, &a, sizeof(int));
-        if (a == -1) exit(0);
-
         read(sock, &m, sizeof(m));
+        a = m[0];
+        memmove(m, m+1, 1000);
         printf("%s",m);
+        if (a == '1') exit(0);
     }
 
     return 0;

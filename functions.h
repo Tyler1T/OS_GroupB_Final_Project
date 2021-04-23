@@ -18,8 +18,10 @@
 #define functions
 
 int seatChecker();
+
 int serve_customer(int socket, int id);
 int get_client_info(int socket, struct clientInformation* c);
+int verify_enough_seats(int socket, struct clientInformation* c);
 int thread_loop(void* args);
 int main(int argc, char const *argv[]);
 
