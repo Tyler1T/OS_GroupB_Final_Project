@@ -35,10 +35,20 @@ int serve_customer(int socket, int id) {
             strcpy(m,"Sorry, there is no train available for the selected date.\nIf you'd like to send another request, please reconnect and start again.\n");
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             send(socket, &error, sizeof(int), 0);
+            return 0;
         }
-        int available = seatChecker(0);
-        if ((c.NumberOfTravelers) > seatChecker(0)) {
-            snprintf(m,1000,"Sorry, there are only %d seats availble for the selected date.\nIf you'd like to send another request, please reconnect and start again.\n",seatChecker(0));
+        char train_sem_name[8];
+        snprintf(train_sem_name,8,"/train%d",train);
+        sem_t* sem_train;
+        if ((sem_train = sem_open(train_sem_name, O_RDWR)) == SEM_FAILED) {
+            printf("failed to open semaphore for train%d.\nerror number:%d",train,errno);
+            exit(0);
+        }
+        sem_wait(sem_train);
+        int available = seatChecker(train);
+        sem_post(sem_train);
+        if ((c.NumberOfTravelers) > available) {
+            snprintf(m,1000,"Sorry, there are only %d seats availble for the selected date.\nIf you'd like to send another request, please reconnect and start again.\n",available);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             send(socket, &error, sizeof(int), 0);
         }
@@ -157,6 +167,14 @@ int main(int argc, char const *argv[]) {
         if (pthread_create(&(q.threads[i]), NULL, (void *)&thread_loop, (void *)&q) != 0) {
             perror("Failed to create thread");
         }
+    }
+    if ((sem_open("/train0", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
+        printf("sad.\n%d\n",errno);
+        exit(0);
+    }
+    if ((sem_open("/train1", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
+        printf("sad.\n%d\n",errno);
+        exit(0);
     }
     while(1){
         if ((new_socket = accept(server_fd, (struct sockaddr*) &address,(socklen_t*) &addrlen)) < 0) {

@@ -13,11 +13,11 @@ int seatChecker(int trainNum)
    printf( "Opening the file train in read mode \n" ) ;
    if (trainNum == 0)
    {
-       fp = fopen ( "train1", "r" ) ; // opening an existing file
+       fp = fopen ( "train1.txt", "r" ) ; // opening an existing file
    }
    else if (trainNum == 1)
    {
-       fp = fopen ( "train2", "r" ) ; // opening an existing file
+       fp = fopen ( "train2.txt", "r" ) ; // opening an existing file
    }
    if ( fp == NULL )
    {
