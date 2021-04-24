@@ -166,12 +166,17 @@ int serve_customer(int socket, int id) {
 
         char date[50];
         int train;
-        if (strcmp(c.DateOfTravel,getDate(date)) == 0) train = 1;
-        else if (strcmp(c.DateOfTravel,getTomorrowDate(date)) == 0) train = 2;
-        else train = -1;
+        GetTodayDate(date);
+        printf("%s\n",date);
+        if (strcmp(c.DateOfTravel,date) == 0) train = 1;
+        else {
+            GetTomorrowDate(date);
+            if (strcmp(c.DateOfTravel,date) == 0) train = 2;
+            else train = -1;
+        }
 
-        if (verify_enough_seats(socket, &c, train) == -1) return 0;
-        if (confirm_purchase(socket, &c, train) == -1) return 0;
+        if (verify_enough_seats(socket, train, &c) == -1) return 0;
+        if (confirm_purchase(socket, train, &c) == -1) return 0;
         send_available_seats(socket, train, &c);
     }
     return 0;
