@@ -57,5 +57,6 @@ int main(int argc, char const *argv[]);
 void modifySummary(struct clientInformation *customer);
 void addNewCustomer(struct clientInformation *customer);
 void changeOldCustomer(struct clientInformation *customer, int line);
+void deleteCustomer(int line);
 int findCustomer(int ID);
 #endif

@@ -1,9 +1,6 @@
 #include "header.h"
 
-void modifySummary(struct clientInformation *customer);
-void addNewCustomer(struct clientInformation *customer);
-void changeOldCustomer(struct clientInformation *customer, int line);
-int findCustomer(int ID);
+
 
 /**
  * Author: Tyler Tucker
@@ -32,10 +29,14 @@ int main(int argc, char const *argv[]) {
     strcpy(b.DateOfBirth, "6/23/1999");
     strcpy(b.Gender, "Male");
     strcpy(b.DateOfTravel, "1/1/2021");
-    b.GovernmentID = 15;
+    b.GovernmentID = 2;
     b.NumberOfTravelers = 3;
     b.MenuOption = 2;
 
+    modifySummary(infoB);
+    modifySummary(info);
+
+    b.NumberOfTravelers = 10;
     modifySummary(infoB);
 
     return 0;
@@ -57,14 +58,6 @@ void addNewCustomer(struct clientInformation *customer){
     fprintf(summary, "%d, ", customer->NumberOfTravelers);
     fprintf(summary, "%d\n", customer->MenuOption);
 
-    printf("%s, ", customer->ClientName);
-    printf("%s, ", customer->DateOfBirth);
-    printf("%s, ", customer->Gender);
-    printf("%d, ", customer->GovernmentID);
-    printf("%s, ", customer->DateOfTravel);
-    printf("%d, ", customer->NumberOfTravelers);
-    printf("%d\n", customer->MenuOption);
-
     fclose(summary);
 }
 
@@ -74,22 +67,47 @@ void addNewCustomer(struct clientInformation *customer){
     and changed what they have in the summary file to reflect the newer
     information
 */
-void changeOldCustomer(struct clientInformation *customer, int line){
+void changeOldCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "w");
     char buffer[1024];
+    int line = findCustomer(customer->GovernmentID);
     int counter;
-    while(counter != line){
-        fgets(buffer, 1024, summary);
-    }
+	while((fgets(buffer, 1024, summary)) != NULL){
+		if(counter == line){
+		    fprintf(summary, "%s, ", customer->ClientName);
+            fprintf(summary, "%s, ", customer->DateOfBirth);
+            fprintf(summary, "%s, ", customer->Gender);
+            fprintf(summary, "%d, ", customer->GovernmentID);
+            fprintf(summary, "%s, ", customer->DateOfTravel);
+            fprintf(summary, "%d, ", customer->NumberOfTravelers);
+            fprintf(summary, "%d\n", customer->MenuOption);
+		}else{
+			fprintf(summary, "%s", buffer);
+		}
 
+        counter++;
+	}
 
-    fprintf(summary, "%s, ", customer->ClientName);
-    fprintf(summary, "%s, ", customer->DateOfBirth);
-    fprintf(summary, "%s, ", customer->Gender);
-    fprintf(summary, "%d, ", customer->GovernmentID);
-    fprintf(summary, "%s, ", customer->DateOfTravel);
-    fprintf(summary, "%d, ", customer->NumberOfTravelers);
-    fprintf(summary, "%d\n", customer->MenuOption);
+    fclose(summary);
+}
+
+void deleteCustomer(struct clientInformation *customer){
+    FILE* summary = fopen("Summary.txt", "w+");
+    FILE* temp = fopen("temp.txt", "a");
+    char buffer[1024];
+    int counter = findCustomer(customer->GovernmentID);
+	while((fgets(buffer, 1024, summary)) != NULL){
+		if(counter != line){
+			fprintf(temp, "%s", buffer);
+		}
+        counter++;
+	}
+
+    fclose(summary);
+    fclose(temp);
+    remove("summary.txt");
+    rename("temp.txt", "summary.txt");
+
 }
 
 
@@ -103,18 +121,15 @@ int findCustomer(int ID){
     char buffer[1024];
     int temp, line;
     while(fgets(buffer, 1024, summary)){
-        sscanf(buffer, "%[^,], %[^,], %[^,], %d",  &temp);
-        printf("%d\n", temp);
+        sscanf(buffer, "%*[^,], %*[^,], %*[^,], %d",  &temp);
         if(temp == ID){
             fclose(summary);
-            printf("Customer found\n" );
             return line;
         }
         line++;
     }
 
     fclose(summary);
-    printf("Customer not found\n");
     return -1;
 }
 
@@ -125,7 +140,9 @@ int findCustomer(int ID){
     returning customer that is changing their information
 */
 void modifySummary(struct clientInformation *customer){
-    int found = findCustomer(customer->GovernmentID);
-    if(found < 0) addNewCustomer(customer);
-    else changeOldCustomer(customer, found);
+    int option = customer->MenuOption;
+    if(option == 1) addNewCustomer(customer);
+    else if(option == 3) changeOldCustomer(customer);
+    else if(option == 4) deleteCustomer(customer);
+    else printf("Not an option\n");
 }
