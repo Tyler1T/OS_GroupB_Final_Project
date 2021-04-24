@@ -72,7 +72,7 @@ int change_read_count(int train, int offset) {
     return num+offset;
 }
 
-int verify_enough_seats(int socket, struct clientInformation* c, int train) {
+int verify_enough_seats(int socket, int train, struct clientInformation* c) {
     char m[1000];
     if (train == -1) {
         strcpy(m,"1Sorry, there is no train available for the selected date.\nIf you'd like to send another request, please reconnect and start again.\n");
@@ -166,8 +166,8 @@ int serve_customer(int socket, int id) {
 
         char date[50];
         int train;
-        if (strcmp(c.DateOfTravel,getToday(date)) == 0) train = 1;
-        else if (strcmp(c.DateOfTravel,getTomorrow(date)) == 0) train = 2;
+        if (strcmp(c.DateOfTravel,getDate(date)) == 0) train = 1;
+        else if (strcmp(c.DateOfTravel,getTomorrowDate(date)) == 0) train = 2;
         else train = -1;
 
         if (verify_enough_seats(socket, &c, train) == -1) return 0;
