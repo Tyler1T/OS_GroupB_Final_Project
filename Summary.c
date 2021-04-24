@@ -18,7 +18,6 @@ int findCustomer(int ID);
     determines if a customer is in the summary file or not
  */
 
-/*
 int main(int argc, char const *argv[]) {
     struct clientInformation c;
     struct clientInformation *info = &c;
@@ -34,18 +33,18 @@ int main(int argc, char const *argv[]) {
     struct clientInformation b;
     struct clientInformation *infoB = &b;
 
-    strcpy(c.ClientName, "Tom");
-    strcpy(c.DateOfBirth, "6/23/1999");
-    strcpy(c.Gender, "Male");
-    strcpy(c.DateOfTravel, "1/1/2021");
-    c.GovernmentID = 15;
-    c.NumberOfTravelers = 3;
-    c.MenuOption = 2;
+    strcpy(b.ClientName, "Tom");
+    strcpy(b.DateOfBirth, "6/23/1999");
+    strcpy(b.Gender, "Male");
+    strcpy(b.DateOfTravel, "1/1/2021");
+    b.GovernmentID = 15;
+    b.NumberOfTravelers = 3;
+    b.MenuOption = 2;
 
     modifySummary(infoB);
 
     return 0;
-}*/
+}
 
 
 /*
@@ -62,6 +61,14 @@ void addNewCustomer(struct clientInformation *customer){
     fprintf(summary, "%s, ", customer->DateOfTravel);
     fprintf(summary, "%d, ", customer->NumberOfTravelers);
     fprintf(summary, "%d\n", customer->MenuOption);
+
+    printf("%s, ", customer->ClientName);
+    printf("%s, ", customer->DateOfBirth);
+    printf("%s, ", customer->Gender);
+    printf("%d, ", customer->GovernmentID);
+    printf("%s, ", customer->DateOfTravel);
+    printf("%d, ", customer->NumberOfTravelers);
+    printf("%d\n", customer->MenuOption);
 
     fclose(summary);
 }
@@ -101,16 +108,18 @@ int findCustomer(int ID){
     char buffer[1024];
     int temp, line;
     while(fgets(buffer, 1024, summary)){
-        sscanf(buffer, "%*c, %*c, %*c, %d",  &temp);
+        sscanf(buffer, "%[^,], %[^,], %[^,], %d",  &temp);
+        printf("%d\n", temp);
         if(temp == ID){
             fclose(summary);
+            printf("Customer found\n" );
             return line;
         }
         line++;
     }
 
     fclose(summary);
-
+    printf("Customer not found\n");
     return -1;
 }
 
