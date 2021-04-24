@@ -1,7 +1,5 @@
 #include "header.h"
 
-
-
 /**
  * Author: Tyler Tucker
  * Email: <tyler.m.tucker@okstate.edu>
