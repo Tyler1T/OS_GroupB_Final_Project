@@ -1,7 +1,6 @@
  //Author: Ben Welch
 
- #include "structs.h"
- #include "functions.h"
+#include "header.h"
 
 int seatChecker(int trainNum)
 {
