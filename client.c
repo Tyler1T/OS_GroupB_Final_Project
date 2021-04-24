@@ -59,15 +59,17 @@ int main(int argc, char const *argv[]) {
 
     while (1) {
         strcpy(m,"");
-        scanf("%1000[^\n]",m);
-        while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
-        send(sock, &m, sizeof(m), 0);
+        if (a != '1') {
+            scanf("%1000[^\n]",m);
+            while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
+            send(sock, &m, sizeof(m), 0);
+        }
 
         read(sock, &m, sizeof(m));
         a = m[0];
         memmove(m, m+1, 1000);
         printf("%s",m);
-        if (a == '1') exit(0);
+        if (a == '2') exit(0);
     }
 
     return 0;

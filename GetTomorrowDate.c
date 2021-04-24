@@ -1,8 +1,6 @@
  //Author: Ben Welch
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "header.h"
 
 int GetTomorrowDate(char *tomorrowsDate)
 {
