@@ -91,6 +91,22 @@ void changeOldCustomer(struct clientInformation *customer){
     fclose(summary);
 }
 
+void printCustomerInfo(char *output, int ticket){
+    FILE* summary = fopen("Summary.txt", "r");
+    char buffer[1024];
+    int line = findCustomer(ticket);
+    int counter;
+
+	while((fgets(buffer, 1024, summary)) != NULL){
+		if(counter == line){
+			fprintf(output, "%s", buffer);
+            fclose(summary);
+            return;
+		}
+        counter++;
+	}
+}
+
 /*
     The deleteCustomer function will take a customer and look for it in the
     summary file, it then deletes that person by writing everyone else to a temp
