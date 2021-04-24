@@ -153,7 +153,7 @@ void send_available_seats(int socket, int train, struct clientInformation* c) {
     // sem_post(sem_train_r);
     char output[100];
     showAvailable(train, output);
-    
+
     // sem_wait(sem_train_r);
     // change_read_count(train,-1);
     // if (change_read_count(train,0) == 0) sem_post(sem_train_w);
@@ -161,6 +161,43 @@ void send_available_seats(int socket, int train, struct clientInformation* c) {
     char m[1000];
     snprintf(m,1000,"0Please choose %d of the following available seats:\n%s",c->NumberOfTravelers,output);
     send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+}
+
+void showAvailable(int trainNum, char* output) {
+    FILE *fp ;
+    char c;
+
+    printf("Opening the file train in read mode \n");
+    if (trainNum == 1) {
+        fp = fopen ("train1.txt","r"); // opening an existing file
+    }
+    else if (trainNum == 2) {
+        fp = fopen ("train2.txt", "r"); // opening an existing file
+    }
+    if ( fp == NULL ) {
+      printf ("Could not open file train \n");
+      return;
+    }
+    printf("Reading the file train \n");
+    int count = 0;
+    int char_index = 0;
+    while (1) {
+        c = fgetc (fp); // reading the file
+        if (c == '0') {
+            output[char_index++] = 'A'+(count / 5);
+            output[char_index++] = '0'+(count % 5 + 1);
+        } else if (c == '1') {
+            output[char_index++] = '-';
+            output[char_index++] = '-';
+        } else break;
+        output[char_index++] = ' ';
+        count++;
+        if ((count % 5) == 0) output[char_index++] = '\n';
+    }
+    printf("Closing the file train \n") ;
+    fclose (fp) ; // Closing the file
+    return;
+
 }
 
 int serve_customer(int socket, int id) {
