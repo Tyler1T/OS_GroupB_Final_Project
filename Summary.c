@@ -7,7 +7,7 @@
  * Program Description: This file takes input from the server and then
     determines if a customer is in the summary file or not
  */
-
+/*
 int main(int argc, char const *argv[]) {
     struct clientInformation c;
     struct clientInformation *info = &c;
@@ -39,7 +39,7 @@ int main(int argc, char const *argv[]) {
 
     return 0;
 }
-
+*/
 
 /*
     The addNewCustomer function takes a new customers information and apends
@@ -162,6 +162,7 @@ int findCustomer(int ID){
 void modifySummary(struct clientInformation *customer){
     int option = customer->MenuOption;
     if(option == 1) addNewCustomer(customer);
+    else if(option == 2) printCustomerInfo(customer);
     else if(option == 3) changeOldCustomer(customer);
     else if(option == 4) deleteCustomer(customer);
     else printf("Not an option\n");
