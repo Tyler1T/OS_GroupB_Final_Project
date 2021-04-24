@@ -11,11 +11,11 @@ int seatChecker(int trainNum)
 
 
    printf( "Opening the file train in read mode \n" ) ;
-   if (trainNum == 0)
+   if (trainNum == 1)
    {
        fp = fopen ( "train1.txt", "r" ) ; // opening an existing file
    }
-   else if (trainNum == 1)
+   else if (trainNum == 2)
    {
        fp = fopen ( "train2.txt", "r" ) ; // opening an existing file
    }
@@ -39,7 +39,6 @@ int seatChecker(int trainNum)
      break ;
      //printf ( "%c", c );
    }
-
    printf("Closing the file train \n") ;
    fclose ( fp ) ; // Closing the file
    return zeros;

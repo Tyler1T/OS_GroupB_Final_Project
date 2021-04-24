@@ -57,26 +57,63 @@ int get_client_info(int socket, struct clientInformation* c) {
     return 0;
 }
 
+int change_read_count(int train, int offset) {
+    FILE *fp;
+    if (train == 0) {
+        fp = fopen ("train1_read_count.txt", "r");
+    } else if (train == 1) {
+        fp = fopen ("train2_read_count.txt", "r");
+    }
+    int num;
+    if (fp == NULL) num = 0;
+    else {
+        fscanf(fp,"%d", &num);
+        fclose(fp);
+    }
+    if (offset == 0) return num;
+    if (train == 0) {
+        fp = fopen ("train1_read_count.txt", "w");
+    } else if (train == 1) {
+        fp = fopen ("train2_read_count.txt", "w");
+    }
+    fprintf(fp,"%d",num+offset);
+    fclose(fp);
+    return num+offset;
+}
+
 int verify_enough_seats(int socket, struct clientInformation* c) {
     char m[1000];
     int train;
-    if (strcmp(c->DateOfTravel,"01/01/2021") == 0) train = 0;
-    else if (strcmp(c->DateOfTravel,"01/02/2021") == 0) train = 1;
+    if (strcmp(c->DateOfTravel,"01/01/2021") == 0) train = 1;
+    else if (strcmp(c->DateOfTravel,"01/02/2021") == 0) train = 2;
     else {
         strcpy(m,"1Sorry, there is no train available for the selected date.\nIf you'd like to send another request, please reconnect and start again.\n");
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
         return -1;
     }
-    char train_sem_name[8];
-    snprintf(train_sem_name,8,"/train%d",train);
-    sem_t* sem_train;
-    if ((sem_train = sem_open(train_sem_name, O_RDWR)) == SEM_FAILED) {
+    char r_train_sem_name[13];
+    char w_train_sem_name[14];
+    snprintf(r_train_sem_name,13,"/train%d_read",train);
+    snprintf(w_train_sem_name,14,"/train%d_write",train);
+    sem_t* sem_train_r;
+    sem_t* sem_train_w;
+    if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
         printf("failed to open semaphore for train%d.\nerror number:%d",train,errno);
         exit(1);
     }
-    sem_wait(sem_train);
+    if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
+        printf("failed to open semaphore for train%d.\nerror number:%d",train,errno);
+        exit(1);
+    }
+    sem_wait(sem_train_r);
+    change_read_count(train,1);
+    if (change_read_count(train,0) == 1) sem_wait(sem_train_w);
+    sem_post(sem_train_r);
     int available = seatChecker(train);
-    sem_post(sem_train);
+    sem_wait(sem_train_r);
+    change_read_count(train,-1);
+    if (change_read_count(train,0) == 0) sem_post(sem_train_w);
+    sem_post(sem_train_r);
     if ((c->NumberOfTravelers) > available) {
         snprintf(m,1000,"1Sorry, there are only %d seats availble for the selected date.\nIf you'd like to send another request, please reconnect and start again.\n",available);
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
@@ -165,11 +202,19 @@ int initialize_semaphores_threads(struct customer_queue* q) {
             perror("Failed to create thread");
         }
     }
-    if ((sem_open("/train0", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
+    if ((sem_open("/train1_read", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
         printf("failed to open semaphore for train0.\nerror number:%d",errno);
         exit(1);
     }
-    if ((sem_open("/train1", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
+    if ((sem_open("/train2_read", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
+        printf("failed to open semaphore for train1.\nerror number:%d",errno);
+        exit(1);
+    }
+    if ((sem_open("/train1_write", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
+        printf("failed to open semaphore for train0.\nerror number:%d",errno);
+        exit(1);
+    }
+    if ((sem_open("/train2_write", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
         printf("failed to open semaphore for train1.\nerror number:%d",errno);
         exit(1);
     }
