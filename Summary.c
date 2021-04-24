@@ -91,6 +91,11 @@ void changeOldCustomer(struct clientInformation *customer){
     fclose(summary);
 }
 
+/*
+    The deleteCustomer function will take a customer and look for it in the
+    summary file, it then deletes that person by writing everyone else to a temp
+    file and then deleting the summary file and renaming the temp file
+*/
 void deleteCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "w+");
     FILE* temp = fopen("temp.txt", "a");
