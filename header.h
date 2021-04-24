@@ -63,5 +63,6 @@ void modifySummary(struct clientInformation *customer);
 void addNewCustomer(struct clientInformation *customer);
 void changeOldCustomer(struct clientInformation *customer);
 void deleteCustomer(struct clientInformation *customer);
+void printCustomerInfo(char *output, int ticket);
 int findCustomer(int ID);
 #endif

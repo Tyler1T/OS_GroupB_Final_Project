@@ -99,7 +99,7 @@ void printCustomerInfo(char *output, int ticket){
 
 	while((fgets(buffer, 1024, summary)) != NULL){
 		if(counter == line){
-			fprintf(output, "%s", buffer);
+			sscanf(output, "%s", buffer);
             fclose(summary);
             return;
 		}
