@@ -1,9 +1,4 @@
-#include "structs.h"
-#include "functions.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include "header.h"
 
 void modifySummary(struct clientInformation *customer);
 void addNewCustomer(struct clientInformation *customer);

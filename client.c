@@ -2,8 +2,7 @@
 // Nathan Baker
 // nathan.t.baker@okstate.edu
 
-#include "structs.h"
-#include "functions.h"
+#include "header.h"
 
  bool valid_ip(char *ip) { // return whether a string is a valid ip address
      struct sockaddr_in sa;
@@ -41,7 +40,7 @@ int main(int argc, char const *argv[]) {
     char ip_addr[15];
     strcpy(ip_addr,"127.0.0.1"); // LOCALHOST
 
-    fork();
+    // fork();
     int sock = connect_to_server(ip_addr,8000+port);
     if (sock == -1) exit(1);
     char m[1000];

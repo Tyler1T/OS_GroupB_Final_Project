@@ -2,18 +2,9 @@
 // Nathan Baker
 // nathan.t.baker@okstate.edu
 
-#include "structs.h"
-#include "functions.h"
+#include "header.h"
 
-#define NUM_THREADS 2
 pthread_mutex_t lock;
-
-struct customer_queue {
-    pthread_t threads[NUM_THREADS];
-    int sockets[100];
-    int waiting;
-    int first;
-};
 
 int get_client_info(int socket, struct clientInformation* c) {
     char m[1000];
@@ -98,11 +89,11 @@ int verify_enough_seats(int socket, struct clientInformation* c) {
     sem_t* sem_train_r;
     sem_t* sem_train_w;
     if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
-        printf("failed to open semaphore for train%d.\nerror number:%d",train,errno);
+        printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
         exit(1);
     }
     if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
-        printf("failed to open semaphore for train%d.\nerror number:%d",train,errno);
+        printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
         exit(1);
     }
     sem_wait(sem_train_r);
