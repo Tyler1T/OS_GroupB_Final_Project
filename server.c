@@ -379,7 +379,7 @@ int create_socket(int port, struct sockaddr_in* address) {
     return server_fd;
 }
 
-int initialize_semaphores_threads(struct customer_queue* q) {
+int initialize_semaphores_threads(struct customer_queue* q, int reset_semaphores) {
     q->first = q->waiting = 0;
     pthread_mutex_init(&lock, NULL);
     for (int i=0; i<NUM_THREADS; i++) {
@@ -387,10 +387,12 @@ int initialize_semaphores_threads(struct customer_queue* q) {
             perror("Failed to create thread");
         }
     }
-    sem_unlink("/train1_read");
-    sem_unlink("/train2_read");
-    sem_unlink("/train1_write");
-    sem_unlink("/train2_write");
+    if (reset == 1) {
+        sem_unlink("/train1_read");
+        sem_unlink("/train2_read");
+        sem_unlink("/train1_write");
+        sem_unlink("/train2_write");
+    }
     if ((sem_open("/train1_read", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
         printf("failed to open semaphore for train0.\nerror number:%d",errno);
         exit(1);
@@ -441,10 +443,12 @@ int main(int argc, char const *argv[]) {
         printf("no valid server index provided.\n");
         exit(1);
     }
+    int reset = 0;
+    if (argc > 2 && strcmp(argv[2],"-r") == 0) reset = 1;
     struct sockaddr_in address;
     int server_fd = create_socket(port, &address);
     struct customer_queue q;
-    initialize_semaphores_threads(&q);
+    initialize_semaphores_threads(&q, reset);
     server_loop(server_fd,port,&address,&q);
     return 0;
 }
