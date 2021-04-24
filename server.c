@@ -50,9 +50,9 @@ int get_client_info(int socket, struct clientInformation* c) {
 
 int change_read_count(int train, int offset) {
     FILE *fp;
-    if (train == 0) {
+    if (train == 1) {
         fp = fopen ("train1_read_count.txt", "r");
-    } else if (train == 1) {
+    } else if (train == 2) {
         fp = fopen ("train2_read_count.txt", "r");
     }
     int num;
@@ -62,9 +62,9 @@ int change_read_count(int train, int offset) {
         fclose(fp);
     }
     if (offset == 0) return num;
-    if (train == 0) {
+    if (train == 1) {
         fp = fopen ("train1_read_count.txt", "w");
-    } else if (train == 1) {
+    } else if (train == 2) {
         fp = fopen ("train2_read_count.txt", "w");
     }
     fprintf(fp,"%d",num+offset);
@@ -72,12 +72,9 @@ int change_read_count(int train, int offset) {
     return num+offset;
 }
 
-int verify_enough_seats(int socket, struct clientInformation* c) {
+int verify_enough_seats(int socket, struct clientInformation* c, int train) {
     char m[1000];
-    int train;
-    if (strcmp(c->DateOfTravel,"01/01/2021") == 0) train = 1;
-    else if (strcmp(c->DateOfTravel,"01/02/2021") == 0) train = 2;
-    else {
+    if (train == -1) {
         strcpy(m,"1Sorry, there is no train available for the selected date.\nIf you'd like to send another request, please reconnect and start again.\n");
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
         return -1;
@@ -113,6 +110,41 @@ int verify_enough_seats(int socket, struct clientInformation* c) {
     return 0;
 }
 
+int confirm_purchase(int socket, int train, struct clientInformation* c) {
+    return 0;
+}
+
+void send_available_seats(int socket, int train, struct clientInformation* c) {
+    char r_train_sem_name[13];
+    char w_train_sem_name[14];
+    snprintf(r_train_sem_name,13,"/train%d_read",train);
+    snprintf(w_train_sem_name,14,"/train%d_write",train);
+    sem_t* sem_train_r;
+    sem_t* sem_train_w;
+    if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
+        printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
+        exit(1);
+    }
+    if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
+        printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
+        exit(1);
+    }
+    printf("test\n");
+    sem_wait(sem_train_r);
+    change_read_count(train,1);
+    if (change_read_count(train,0) == 1) sem_wait(sem_train_w);
+    sem_post(sem_train_r);
+    char output[100];
+    showAvailable(train, output);
+    sem_wait(sem_train_r);
+    change_read_count(train,-1);
+    if (change_read_count(train,0) == 0) sem_post(sem_train_w);
+    sem_post(sem_train_r);
+    char m[1000];
+    snprintf(m,1000,"0Please choose %d of the following available seats:\n%s",c->NumberOfTravelers,output);
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+}
+
 int serve_customer(int socket, int id) {
     struct clientInformation c;
     char m[1000];
@@ -131,7 +163,16 @@ int serve_customer(int socket, int id) {
     }
     if (c.MenuOption == 1) { // make reservation
         if (get_client_info(socket,&c) == -1) return 0;
-        if (verify_enough_seats(socket, &c) == -1) return 0;
+
+        char date[50];
+        int train;
+        if (strcmp(c.DateOfTravel,getToday(date)) == 0) train = 1;
+        else if (strcmp(c.DateOfTravel,getTomorrow(date)) == 0) train = 2;
+        else train = -1;
+
+        if (verify_enough_seats(socket, &c, train) == -1) return 0;
+        if (confirm_purchase(socket, &c, train) == -1) return 0;
+        send_available_seats(socket, train, &c);
     }
     return 0;
 }
@@ -193,6 +234,10 @@ int initialize_semaphores_threads(struct customer_queue* q) {
             perror("Failed to create thread");
         }
     }
+    sem_unlink("/train1_read");
+    sem_unlink("/train2_read");
+    sem_unlink("/train1_write");
+    sem_unlink("/train2_write");
     if ((sem_open("/train1_read", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
         printf("failed to open semaphore for train0.\nerror number:%d",errno);
         exit(1);

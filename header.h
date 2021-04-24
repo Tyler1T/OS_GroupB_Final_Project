@@ -40,13 +40,15 @@ struct customer_queue {
     int first;
 };
 
-int seatChecker();
+int seatChecker(int trainNUM);
+void showAvailable(int trainNum, char* output);
 
 int create_socket(int port, struct sockaddr_in* address);
 int initialize_semaphores_threads(struct customer_queue* q);
 int serve_customer(int socket, int id);
 int get_client_info(int socket, struct clientInformation* c);
-int verify_enough_seats(int socket, struct clientInformation* c);
+int verify_enough_seats(int socket, struct clientInformation* c, int train);
+void send_available_seats(int socket, int train, struct clientInformation* c);
 int thread_loop(void* args);
 int main(int argc, char const *argv[]);
 
