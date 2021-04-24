@@ -41,7 +41,8 @@ struct customer_queue {
     int first;
 };
 
-int seatChecker();
+int seatChecker(int trainNum);
+void showAvailable(int trainNum, char* output);
 int GetTomorrowDate(char *tomorrowsDate);
 int GetTodayDate(char *todaysDate);
 
