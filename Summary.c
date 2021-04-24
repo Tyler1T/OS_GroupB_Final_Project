@@ -95,7 +95,8 @@ void deleteCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "w+");
     FILE* temp = fopen("temp.txt", "a");
     char buffer[1024];
-    int counter = findCustomer(customer->GovernmentID);
+    int counter;
+    int line = findCustomer(customer->GovernmentID);
 	while((fgets(buffer, 1024, summary)) != NULL){
 		if(counter != line){
 			fprintf(temp, "%s", buffer);
