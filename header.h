@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <time.h>
 
 #ifndef header
 #define header
@@ -40,15 +41,15 @@ struct customer_queue {
     int first;
 };
 
-int seatChecker(int trainNUM);
-void showAvailable(int trainNum, char* output);
+int seatChecker();
+int GetTomorrowDate(char *tomorrowsDate);
+int GetTodayDate(char *todaysDate);
 
 int create_socket(int port, struct sockaddr_in* address);
 int initialize_semaphores_threads(struct customer_queue* q);
 int serve_customer(int socket, int id);
 int get_client_info(int socket, struct clientInformation* c);
-int verify_enough_seats(int socket, struct clientInformation* c, int train);
-void send_available_seats(int socket, int train, struct clientInformation* c);
+int verify_enough_seats(int socket, struct clientInformation* c);
 int thread_loop(void* args);
 int main(int argc, char const *argv[]);
 
@@ -58,7 +59,7 @@ int main(int argc, char const *argv[]);
 
 void modifySummary(struct clientInformation *customer);
 void addNewCustomer(struct clientInformation *customer);
-void changeOldCustomer(struct clientInformation *customer);
-void deleteCustomer(struct clientInformation *customer);
+void changeOldCustomer(struct clientInformation *customer, int line);
+void deleteCustomer(int line);
 int findCustomer(int ID);
 #endif
