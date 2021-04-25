@@ -30,6 +30,7 @@ struct clientInformation{
     int NumberOfTravelers;
     int MenuOption;
     char seats[100];
+    int ticket;
     char modified[100];
     int server;
 }__attribute__((packed))clientInformation;

@@ -48,13 +48,17 @@ int main(int argc, char const *argv[]) {
 void addNewCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "a");
 
+    customer->ticket = findCustomer(customer);
+
     fprintf(summary, "%s, ", customer->ClientName);
     fprintf(summary, "%s, ", customer->DateOfBirth);
     fprintf(summary, "%s, ", customer->Gender);
     fprintf(summary, "%d, ", customer->GovernmentID);
     fprintf(summary, "%s, ", customer->DateOfTravel);
     fprintf(summary, "%d, ", customer->NumberOfTravelers);
-    fprintf(summary, "%d\n", customer->MenuOption);
+    fprintf(summary, "%d, ", customer->MenuOption);
+    fprintf(summary, "%d\n", customer->ticket);
+
 
     fclose(summary);
 }
@@ -111,7 +115,7 @@ void printCustomerInfo(char *output, int ticket){
     file and then deleting the summary file and renaming the temp file
 */
 void deleteCustomer(struct clientInformation *customer){
-    FILE* summary = fopen("Summary.txt", "w+");
+    FILE* summary = fopen("Summary.txt", "r");
     FILE* temp = fopen("temp.txt", "a");
     char buffer[1024];
     int counter;
@@ -150,7 +154,7 @@ int findCustomer(int ID){
     }
 
     fclose(summary);
-    return -1;
+    return line;
 }
 
 
