@@ -57,8 +57,12 @@ int confirm_purchase(int socket, int train, struct clientInformation* c);
 int check_seat(int train, int row, int column);
 int verify_selection(int socket, int train, struct clientInformation* c, char* m);
 int write_seat(int train, int row, int column);
-int update_train(int train, struct clientInformation* c, char* m);
+int update_train_and_summary(int train, struct clientInformation* c, char* m);
 void send_available_seats(int socket, int train, struct clientInformation* c);
+int signal_write(int train);
+int wait_write(int train);
+int signal_read(int train);
+int wait_read(int train);
 int main(int argc, char const *argv[]);
 
 int connect_to_server(char* ip_addr, int port);

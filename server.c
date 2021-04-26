@@ -72,29 +72,15 @@ int verify_enough_seats(int socket, int train, struct clientInformation* c) {
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
         return -1;
     }
-    char r_train_sem_name[13];
-    char w_train_sem_name[14];
-    snprintf(r_train_sem_name,13,"/train%d_read",train);
-    snprintf(w_train_sem_name,14,"/train%d_write",train);
-    sem_t* sem_train_r;
-    sem_t* sem_train_w;
-    if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
-        printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
-        exit(1);
-    }
-    if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
-        printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
-        exit(1);
-    }
-    sem_wait(sem_train_r);
+    wait_read(train);
     change_read_count(train,1);
-    if (change_read_count(train,0) == 1) sem_wait(sem_train_w);
-    sem_post(sem_train_r);
+    if (change_read_count(train,0) == 1) wait_write(train);
+    signal_read(train);
     int available = seatChecker(train);
-    sem_wait(sem_train_r);
+    wait_read(train);
     change_read_count(train,-1);
-    if (change_read_count(train,0) == 0) sem_post(sem_train_w);
-    sem_post(sem_train_r);
+    if (change_read_count(train,0) == 0) signal_write(train);
+    signal_read(train);
     if ((c->NumberOfTravelers) > available) {
         snprintf(m,1000,"1Sorry, there are only %d seats availble for the selected date.\nReservation cancelled.\n",available);
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
@@ -109,14 +95,7 @@ int confirm_purchase(int socket, int train, struct clientInformation* c) {
     send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     read(socket, &m, sizeof(m));
     if (strcmp(m,"yes") == 0) {
-        char w_train_sem_name[14];
-        snprintf(w_train_sem_name,14,"/train%d_write",train);
-        sem_t* sem_train_w;
-        if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
-            printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
-            exit(1);
-        }
-        sem_wait(sem_train_w);
+        wait_write(train);
         return 0;
     } else {
         snprintf(m,1000,"1Reservation cancelled.\n");
@@ -126,30 +105,8 @@ int confirm_purchase(int socket, int train, struct clientInformation* c) {
 }
 
 void send_available_seats(int socket, int train, struct clientInformation* c) {
-    // char r_train_sem_name[13];
-    // char w_train_sem_name[14];
-    // snprintf(r_train_sem_name,13,"/train%d_read",train);
-    // snprintf(w_train_sem_name,14,"/train%d_write",train);
-    // sem_t* sem_train_r;
-    // sem_t* sem_train_w;
-    // if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
-    //     printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
-    //     exit(1);
-    // }
-    // if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
-    //     printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
-    //     exit(1);
-    // }
-    // sem_wait(sem_train_r);
-    // change_read_count(train,1);
-    // if (change_read_count(train,0) == 1) sem_wait(sem_train_w);
-    // sem_post(sem_train_r);
     char output[100];
     showAvailable(train, output);
-    // sem_wait(sem_train_r);
-    // change_read_count(train,-1);
-    // if (change_read_count(train,0) == 0) sem_post(sem_train_w);
-    // sem_post(sem_train_r);
     char m[1000];
     snprintf(m,1000,"0\nPlease choose %d of the following available seats [single space between each seat]:\n%s\n",c->NumberOfTravelers,output);
     send(socket, &m, sizeof(m), MSG_NOSIGNAL);
@@ -255,7 +212,7 @@ int verify_selection(int socket, int train, struct clientInformation* c, char* m
     return 0;
 }
 
-int update_train(int train, struct clientInformation* c, char* m) {
+int update_train_and_summary(int train, struct clientInformation* c, char* m) {
     char output[100];
     showAvailable(train, output);
     printf("%s\n",output);
@@ -269,7 +226,38 @@ int update_train(int train, struct clientInformation* c, char* m) {
         int column = seat[1] - 49;
         write_seat(train,row,column);
     }
+    showAvailable(train, output);
+    printf("%s\n",output);
     addNewCustomer(c);
+    signal_write(train);
+    return 0;
+}
+
+int signal_read(int train) {
+    char r_train_sem_name[13];
+    snprintf(r_train_sem_name,13,"/train%d_read",train);
+    sem_t* sem_train_r;
+    if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
+        printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
+        exit(1);
+    }
+    sem_post(sem_train_r);
+    return 0;
+}
+
+int wait_read(int train) {
+    char r_train_sem_name[13];
+    snprintf(r_train_sem_name,13,"/train%d_read",train);
+    sem_t* sem_train_r;
+    if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
+        printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
+        exit(1);
+    }
+    sem_wait(sem_train_r);
+    return 0;
+}
+
+int signal_write(int train) {
     char w_train_sem_name[14];
     snprintf(w_train_sem_name,14,"/train%d_write",train);
     sem_t* sem_train_w;
@@ -278,8 +266,18 @@ int update_train(int train, struct clientInformation* c, char* m) {
         exit(1);
     }
     sem_post(sem_train_w);
-    showAvailable(train, output);
-    printf("%s\n",output);
+    return 0;
+}
+
+int wait_write(int train) {
+    char w_train_sem_name[14];
+    snprintf(w_train_sem_name,14,"/train%d_write",train);
+    sem_t* sem_train_w;
+    if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
+        printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
+        exit(1);
+    }
+    sem_wait(sem_train_w);
     return 0;
 }
 
@@ -320,7 +318,7 @@ int serve_customer(int socket, int id) {
             send_available_seats(socket, train, &c);
             read(socket, &m, sizeof(m));
             if (verify_selection(socket, train, &c, m) == -1) continue;
-            update_train(train, &c, m);
+            update_train_and_summary(train, &c, m);
             snprintf(m,1000,"1Reservation confirmed! Your ticket number is %d.\n",c.ticket);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
