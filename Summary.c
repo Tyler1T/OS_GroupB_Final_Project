@@ -59,7 +59,7 @@ void addNewCustomer(struct clientInformation *customer){
     fprintf(summary, "%s, ", customer->DateOfTravel);
     fprintf(summary, "%d, ", customer->NumberOfTravelers);
     fprintf(summary, "%d, ", customer->MenuOption);
-    fprintf(summary, "%d\n", customer->ticket);
+    fprintf(summary, "%s\n", customer->seats);
 
     fclose(summary);
 }
