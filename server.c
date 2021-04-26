@@ -348,7 +348,8 @@ int serve_customer(int socket, int t_id, int s_id) {
             if (get_customer_ticket(socket,&c) == -1) continue;
             char results[500];
             // NEED TO ADD SEMAPHORES TO SUMMARY FILE
-            printCustomerInfo(results,c.ticket);
+            printf("ticket: %d\n",c.ticket);
+            printCustomerInfo(&c,results);
             snprintf(m,1000,"1Inquiry Results:\n%s\n",results);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;

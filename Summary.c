@@ -48,6 +48,7 @@ int main(int argc, char const *argv[]) {
 void addNewCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "a");
 
+    customer->ticket = -1;
     customer->ticket = findCustomer(customer);
 
     fprintf(summary, "%d, ", customer->ticket);
@@ -59,7 +60,6 @@ void addNewCustomer(struct clientInformation *customer){
     fprintf(summary, "%d, ", customer->NumberOfTravelers);
     fprintf(summary, "%d, ", customer->MenuOption);
     fprintf(summary, "%d\n", customer->ticket);
-
 
     fclose(summary);
 }
@@ -74,11 +74,11 @@ void changeOldCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "w");
     char buffer[1024];
     int line = findCustomer(customer);
-    int counter;
-	while((fgets(buffer, 1024, summary)) != NULL){
-		if(counter == line){
+    int counter = 0;
+    while((fgets(buffer, 1024, summary)) != NULL){
+        if(counter == line){
             fprintf(summary, "%d, ", customer->ticket);
-		    fprintf(summary, "%s, ", customer->ClientName);
+            fprintf(summary, "%s, ", customer->ClientName);
             fprintf(summary, "%s, ", customer->DateOfBirth);
             fprintf(summary, "%s, ", customer->Gender);
             fprintf(summary, "%d, ", customer->GovernmentID);
@@ -91,7 +91,6 @@ void changeOldCustomer(struct clientInformation *customer){
 
         counter++;
     }
-
     fclose(summary);
 }
 
@@ -99,7 +98,7 @@ void printCustomerInfo(struct clientInformation *customer, char *output){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
     int line = findCustomer(customer);
-    printf("line: %d\n",line);
+    printf("ticket: %d\nline: %d\n",customer->ticket,line);
     int counter = 0;
 
     while((fgets(buffer, 1024, summary)) != NULL){
@@ -110,6 +109,7 @@ void printCustomerInfo(struct clientInformation *customer, char *output){
         }
         counter++;
     }
+    fclose(summary);
 }
 
 /*
@@ -121,7 +121,7 @@ void deleteCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "r");
     FILE* temp = fopen("temp.txt", "a");
     char buffer[1024];
-    int counter;
+    int counter = 0;
     int line = findCustomer(customer);
     while((fgets(buffer, 1024, summary)) != NULL){
         if(counter != line){
@@ -134,7 +134,6 @@ void deleteCustomer(struct clientInformation *customer){
     fclose(temp);
     remove("summary.txt");
     rename("temp.txt", "summary.txt");
-
 }
 
 
@@ -146,7 +145,9 @@ void deleteCustomer(struct clientInformation *customer){
 int findCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
-    int temp, line, ticket;
+    int temp = 0;
+    int line = 0;
+    int ticket = 0;
     ticket = customer->ticket;
     while(fgets(buffer, 1024, summary)){
         sscanf(buffer, "%d",  &temp);
@@ -156,7 +157,6 @@ int findCustomer(struct clientInformation *customer){
         }
         line++;
     }
-
     fclose(summary);
     return line;
 }
