@@ -6,45 +6,49 @@
 
 pthread_mutex_t lock;
 
-int get_client_info(int socket, struct clientInformation* c) {
+int get_customer_info(int socket, struct clientInformation* c) {
     char m[1000];
-    int flag;
-    // strcpy(m,"0Please enter your full name: ");
-    // flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
-    // if (flag < 0) return -1;
-    // read(socket, &m, sizeof(m));
-    // sscanf(m,"%50[^\n]",c->ClientName);
-    // printf("%s\n",c->ClientName);
-    // strcpy(m,"0Please enter your date of birth [MM/DD/YYYY]: ");
-    // flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
-    // if (flag < 0) return -1;
-    // read(socket, &m, sizeof(m));
-    // sscanf(m,"%50[^\n]",c->DateOfBirth);
-    // printf("%s\n",c->DateOfBirth);
-    // strcpy(m,"0Please enter your gender [M, F, Other]: ");
-    // flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
-    // if (flag < 0) return -1;
-    // read(socket, &m, sizeof(m));
-    // sscanf(m,"%10[^\n]",c->Gender);
-    // printf("%s\n",c->Gender);
-    // strcpy(m,"0Please enter your date of GovernmentID number: ");
-    // flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
-    // if (flag < 0) return -1;
-    // read(socket, &m, sizeof(m));
-    // sscanf(m,"%d",&c->GovernmentID);
-    // printf("%d\n",c->GovernmentID);
+    strcpy(m,"0Please enter your full name: ");
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%50[^\n]",c->ClientName);
+    printf("%s\n",c->ClientName);
+    strcpy(m,"0Please enter your date of birth [MM/DD/YYYY]: ");
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%50[^\n]",c->DateOfBirth);
+    printf("%s\n",c->DateOfBirth);
+    strcpy(m,"0Please enter your gender [M, F, Other]: ");
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%10[^\n]",c->Gender);
+    printf("%s\n",c->Gender);
+    strcpy(m,"0Please enter your date of GovernmentID number: ");
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%d",&c->GovernmentID);
+    printf("%d\n",c->GovernmentID);
     strcpy(m,"0Please enter your desired date of travel [MM/DD/YYYY]: ");
-    flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
-    if (flag < 0) return -1;
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     read(socket, &m, sizeof(m));
     sscanf(m,"%50[^\n]",c->DateOfTravel);
     printf("%s\n",c->DateOfTravel);
     strcpy(m,"0Please enter the number of travelers: ");
-    flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
-    if (flag < 0) return -1;
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     read(socket, &m, sizeof(m));
     sscanf(m,"%d",&c->NumberOfTravelers);
     printf("%d\n",c->NumberOfTravelers);
+    return 0;
+}
+
+int get_customer_ticket(int socket, struct clientInformation* c) {
+    char m[1000];
+    int ticket;
+    strcpy(m,"0Please enter your ticket number: ");
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%d",&c->ticket);
+    printf("%d\n",c->ticket);
     return 0;
 }
 
@@ -79,29 +83,15 @@ int verify_enough_seats(int socket, int train, struct clientInformation* c) {
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
         return -1;
     }
-    char r_train_sem_name[13];
-    char w_train_sem_name[14];
-    snprintf(r_train_sem_name,13,"/train%d_read",train);
-    snprintf(w_train_sem_name,14,"/train%d_write",train);
-    sem_t* sem_train_r;
-    sem_t* sem_train_w;
-    if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
-        printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
-        exit(1);
-    }
-    if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
-        printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
-        exit(1);
-    }
-    sem_wait(sem_train_r);
+    wait_read(train);
     change_read_count(train,1);
-    if (change_read_count(train,0) == 1) sem_wait(sem_train_w);
-    sem_post(sem_train_r);
+    if (change_read_count(train,0) == 1) wait_write(train);
+    signal_read(train);
     int available = seatChecker(train);
-    sem_wait(sem_train_r);
+    wait_read(train);
     change_read_count(train,-1);
-    if (change_read_count(train,0) == 0) sem_post(sem_train_w);
-    sem_post(sem_train_r);
+    if (change_read_count(train,0) == 0) signal_write(train);
+    signal_read(train);
     if ((c->NumberOfTravelers) > available) {
         snprintf(m,1000,"1Sorry, there are only %d seats availble for the selected date.\nReservation cancelled.\n",available);
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
@@ -112,18 +102,11 @@ int verify_enough_seats(int socket, int train, struct clientInformation* c) {
 
 int confirm_purchase(int socket, int train, struct clientInformation* c) {
     char m[1000];
-    snprintf(m,1000,"0Do you want to make reservation (yes/no): ");
+    snprintf(m,1000,"0\nDo you want to make reservation (yes/no): ");
     send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     read(socket, &m, sizeof(m));
     if (strcmp(m,"yes") == 0) {
-        char w_train_sem_name[14];
-        snprintf(w_train_sem_name,14,"/train%d_write",train);
-        sem_t* sem_train_w;
-        if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
-            printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
-            exit(1);
-        }
-        sem_wait(sem_train_w);
+        wait_write(train);
         return 0;
     } else {
         snprintf(m,1000,"1Reservation cancelled.\n");
@@ -132,33 +115,26 @@ int confirm_purchase(int socket, int train, struct clientInformation* c) {
     }
 }
 
+int confirm_cancel(int socket, struct clientInformation* c) {
+    char m[1000];
+    snprintf(m,1000,"0\nAre you sure you want to cancel your reservation (yes/no): ");
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    read(socket, &m, sizeof(m));
+    if (strcmp(m,"yes") == 0) {
+        snprintf(m,1000,"1Reservation cancelled.\n");
+        send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+        // WAIT WRITE
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
 void send_available_seats(int socket, int train, struct clientInformation* c) {
-    // char r_train_sem_name[13];
-    // char w_train_sem_name[14];
-    // snprintf(r_train_sem_name,13,"/train%d_read",train);
-    // snprintf(w_train_sem_name,14,"/train%d_write",train);
-    // sem_t* sem_train_r;
-    // sem_t* sem_train_w;
-    // if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
-    //     printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
-    //     exit(1);
-    // }
-    // if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
-    //     printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
-    //     exit(1);
-    // }
-    // sem_wait(sem_train_r);
-    // change_read_count(train,1);
-    // if (change_read_count(train,0) == 1) sem_wait(sem_train_w);
-    // sem_post(sem_train_r);
     char output[100];
     showAvailable(train, output);
-    // sem_wait(sem_train_r);
-    // change_read_count(train,-1);
-    // if (change_read_count(train,0) == 0) sem_post(sem_train_w);
-    // sem_post(sem_train_r);
     char m[1000];
-    snprintf(m,1000,"0Please choose %d of the following available seats:\n%s",c->NumberOfTravelers,output);
+    snprintf(m,1000,"0\nPlease choose %d of the following available seats [single space between each seat]:\n%s\n",c->NumberOfTravelers,output);
     send(socket, &m, sizeof(m), MSG_NOSIGNAL);
 }
 
@@ -248,21 +224,15 @@ int verify_selection(int socket, int train, struct clientInformation* c, char* m
         int column = seat[1] - 49;
         if (check_seat(train,row,column) == -1) {
             printf("seat verification failed.\n");
-            char w_train_sem_name[14];
-            snprintf(w_train_sem_name,14,"/train%d_write",train);
-            sem_t* sem_train_w;
-            if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
-                printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
-                exit(1);
-            }
-            sem_post(sem_train_w);
+            signal_write(train);
             return -1;
         }
     }
+    strcpy(c->seats, m);
     return 0;
 }
 
-int update_train(int train, struct clientInformation* c, char* m) {
+int update_train_and_summary(int train, struct clientInformation* c, char* m) {
     char output[100];
     showAvailable(train, output);
     printf("%s\n",output);
@@ -276,6 +246,38 @@ int update_train(int train, struct clientInformation* c, char* m) {
         int column = seat[1] - 49;
         write_seat(train,row,column);
     }
+    showAvailable(train, output);
+    printf("%s\n",output);
+    addNewCustomer(c);
+    signal_write(train);
+    return 0;
+}
+
+int signal_read(int train) {
+    char r_train_sem_name[13];
+    snprintf(r_train_sem_name,13,"/train%d_read",train);
+    sem_t* sem_train_r;
+    if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
+        printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
+        exit(1);
+    }
+    sem_post(sem_train_r);
+    return 0;
+}
+
+int wait_read(int train) {
+    char r_train_sem_name[13];
+    snprintf(r_train_sem_name,13,"/train%d_read",train);
+    sem_t* sem_train_r;
+    if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
+        printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
+        exit(1);
+    }
+    sem_wait(sem_train_r);
+    return 0;
+}
+
+int signal_write(int train) {
     char w_train_sem_name[14];
     snprintf(w_train_sem_name,14,"/train%d_write",train);
     sem_t* sem_train_w;
@@ -284,20 +286,34 @@ int update_train(int train, struct clientInformation* c, char* m) {
         exit(1);
     }
     sem_post(sem_train_w);
-    showAvailable(train, output);
-    printf("%s\n",output);
     return 0;
 }
 
-int serve_customer(int socket, int id) {
+int wait_write(int train) {
+    char w_train_sem_name[14];
+    snprintf(w_train_sem_name,14,"/train%d_write",train);
+    sem_t* sem_train_w;
+    if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
+        printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
+        exit(1);
+    }
+    sem_wait(sem_train_w);
+    return 0;
+}
+
+int serve_customer(int socket, int t_id, int s_id) {
     struct clientInformation c;
+    c.server = s_id;
     char m[1000];
-    int success = 0;
-    int error = 1;
+    int first = 1;
     while (1) {
-        snprintf(m,1000,"0Hello! My name is THREAD-%d, How may I assist you today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n",id);
-        int flag = send(socket, &m, sizeof(m), MSG_NOSIGNAL);
-        if (flag < 0) return -1;
+        if (first) {
+            snprintf(m,1000,"0Hello! My name is THREAD-%d, How may I assist you today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n",t_id);
+            first = 0;
+        } else {
+            strcpy(m,"0\nIs there anything else I can help you with today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n");
+        }
+        send(socket, &m, sizeof(m), MSG_NOSIGNAL);
         read(socket, &m, sizeof(m));
         sscanf(m,"%d",&c.MenuOption);
         printf("%d\n",c.MenuOption);
@@ -307,8 +323,7 @@ int serve_customer(int socket, int id) {
             return 0;
         }
         if (c.MenuOption == 1) { // make reservation
-            if (get_client_info(socket,&c) == -1) continue;
-
+            if (get_customer_info(socket,&c) == -1) continue;
             char date[50];
             int train;
             GetTodayDate(date);
@@ -324,8 +339,33 @@ int serve_customer(int socket, int id) {
             send_available_seats(socket, train, &c);
             read(socket, &m, sizeof(m));
             if (verify_selection(socket, train, &c, m) == -1) continue;
-            update_train(train, &c, m);
+            update_train_and_summary(train, &c, m);
+            snprintf(m,1000,"1Reservation confirmed! Your ticket number is %d.\n",c.ticket);
+            send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+            continue;
         }
+        if (c.MenuOption == 2) {
+            if (get_customer_ticket(socket,&c) == -1) continue;
+            char results[500];
+            // NEED TO ADD SEMAPHORES TO SUMMARY FILE
+            printCustomerInfo(results,c.ticket);
+            snprintf(m,1000,"1Inquiry Results:\n%s\n",results);
+            send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+            continue;
+        }
+        if (c.MenuOption == 3) {
+            if (get_customer_ticket(socket,&c) == -1) continue;
+            // NOT IMPLEMENTED
+            continue;
+        }
+        if (c.MenuOption == 4) {
+            if (get_customer_ticket(socket,&c) == -1) continue;
+            if (confirm_cancel(socket,&c) == -1) continue;
+            // NEED TO OPEN TRAIN SEATS BACK UP
+            deleteCustomer(&c);
+            continue;
+        }
+        break;
     }
     return 0;
 }
@@ -349,7 +389,7 @@ int thread_loop(void* args) {
             q->waiting = q->waiting -1;
         }
         pthread_mutex_unlock(&lock);
-        if (my_customer >= 0) serve_customer(my_customer,id);
+        if (my_customer >= 0) serve_customer(my_customer,id,q->port);
     }
 }
 
@@ -387,7 +427,7 @@ int initialize_semaphores_threads(struct customer_queue* q, int reset_semaphores
             perror("Failed to create thread");
         }
     }
-    if (reset == 1) {
+    if (reset_semaphores == 1) {
         sem_unlink("/train1_read");
         sem_unlink("/train2_read");
         sem_unlink("/train1_write");
