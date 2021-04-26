@@ -58,6 +58,8 @@ int change_read_count(int train, int offset) {
         fp = fopen ("train1_read_count.txt", "r");
     } else if (train == 2) {
         fp = fopen ("train2_read_count.txt", "r");
+    } else if (train == -1) {
+        fp = fopen ("summary_read_count.txt", "r");
     }
     int num;
     if (fp == NULL) num = 0;
@@ -70,6 +72,8 @@ int change_read_count(int train, int offset) {
         fp = fopen ("train1_read_count.txt", "w");
     } else if (train == 2) {
         fp = fopen ("train2_read_count.txt", "w");
+    } else if (train == -1) {
+        fp = fopen ("summary_read_count.txt", "r");
     }
     fprintf(fp,"%d",num+offset);
     fclose(fp);
@@ -198,7 +202,7 @@ int check_seat(int train, int row, int column) {
     else return -1;
 }
 
-int write_seat(int train, int row, int column) {
+int write_seat(int train, int row, int column, int update) {
     FILE *fp;
     if (train == 1) {
         fp = fopen ("train1.txt", "r+");
@@ -207,7 +211,8 @@ int write_seat(int train, int row, int column) {
     }
     int index = row*5 + column;
     fseek(fp, index, SEEK_SET);
-    fputc('1',fp);
+    if (update == 1) fputc('1',fp);
+    else if (update == 0) fputc('0',fp);
     fclose(fp);
     return 0;
 }
@@ -232,7 +237,7 @@ int verify_selection(int socket, int train, struct clientInformation* c, char* m
     return 0;
 }
 
-int update_train_and_summary(int train, struct clientInformation* c, char* m) {
+int add_to_train_and_summary(int train, struct clientInformation* c, char* m) {
     char output[100];
     showAvailable(train, output);
     printf("%s\n",output);
@@ -244,60 +249,100 @@ int update_train_and_summary(int train, struct clientInformation* c, char* m) {
         sscanf(n,"%2c",seat);
         int row = seat[0] - 65;
         int column = seat[1] - 49;
-        write_seat(train,row,column);
+        write_seat(train,row,column,1);
     }
     showAvailable(train, output);
     printf("%s\n",output);
+    wait_write(-1);
     addNewCustomer(c);
+    signal_write(-1);
+    signal_write(train);
+    return 0;
+}
+
+int remove_from_train_and_summary(struct clientInformation* c) {
+    char date[50];
+    int train;
+    GetTodayDate(date);
+    printf("%s\n",date);
+    if (strcmp(c.DateOfTravel,date) == 0) train = 1;
+    else {
+        GetTomorrowDate(date);
+        if (strcmp(c.DateOfTravel,date) == 0) train = 2;
+        else train = -1;
+    }
+    wait_write(train);
+    char output[100];
+    showAvailable(train, output);
+    printf("%s\n",output);
+    char n[100];
+    strcpy(n,c->seats);
+    for (int i=0; i<c->NumberOfTravelers; i++) {
+        if (i>0) memmove(n, n+3, 100);
+        char seat[3];
+        sscanf(n,"%2c",seat);
+        int row = seat[0] - 65;
+        int column = seat[1] - 49;
+        write_seat(train,row,column,0);
+    }
+    showAvailable(train, output);
+    printf("%s\n",output);
+    wait_write(-1);
+    deleteCustomer(c);
+    signal_write(-1);
     signal_write(train);
     return 0;
 }
 
 int signal_read(int train) {
-    char r_train_sem_name[13];
-    snprintf(r_train_sem_name,13,"/train%d_read",train);
-    sem_t* sem_train_r;
-    if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
+    char sem_name[25];
+    if (train > 0) snprintf(sem_name,25,"/train%d_read",train);
+    else strcpy(sem_name,"/summary_read");
+    sem_t* sem;
+    if ((sem = sem_open(sem_name, O_RDWR)) == SEM_FAILED) {
         printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
         exit(1);
     }
-    sem_post(sem_train_r);
+    sem_post(sem);
     return 0;
 }
 
 int wait_read(int train) {
-    char r_train_sem_name[13];
-    snprintf(r_train_sem_name,13,"/train%d_read",train);
-    sem_t* sem_train_r;
-    if ((sem_train_r = sem_open(r_train_sem_name, O_RDWR)) == SEM_FAILED) {
+    char sem_name[25];
+    if (train > 0) snprintf(sem_name,25,"/train%d_read",train);
+    else strcpy(sem_name,"/summary_read");
+    sem_t* sem;
+    if ((sem = sem_open(sem_name, O_RDWR)) == SEM_FAILED) {
         printf("failed to open read semaphore for train%d.\nerror number:%d",train,errno);
         exit(1);
     }
-    sem_wait(sem_train_r);
+    sem_wait(sem);
     return 0;
 }
 
 int signal_write(int train) {
-    char w_train_sem_name[14];
-    snprintf(w_train_sem_name,14,"/train%d_write",train);
-    sem_t* sem_train_w;
-    if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
+    char sem_name[25];
+    if (train > 0) snprintf(sem_name,25,"/train%d_write",train);
+    else strcpy(sem_name,"/summary_write");
+    sem_t* sem;
+    if ((sem = sem_open(sem_name, O_RDWR)) == SEM_FAILED) {
         printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
         exit(1);
     }
-    sem_post(sem_train_w);
+    sem_post(sem);
     return 0;
 }
 
 int wait_write(int train) {
-    char w_train_sem_name[14];
-    snprintf(w_train_sem_name,14,"/train%d_write",train);
-    sem_t* sem_train_w;
-    if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
+    char sem_name[25];
+    if (train > 0) snprintf(sem_name,25,"/train%d_write",train);
+    else strcpy(sem_name,"/summary_write");
+    sem_t* sem;
+    if ((sem = sem_open(sem_name, O_RDWR)) == SEM_FAILED) {
         printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
         exit(1);
     }
-    sem_wait(sem_train_w);
+    sem_wait(sem);
     return 0;
 }
 
@@ -339,7 +384,7 @@ int serve_customer(int socket, int t_id, int s_id) {
             send_available_seats(socket, train, &c);
             read(socket, &m, sizeof(m));
             if (verify_selection(socket, train, &c, m) == -1) continue;
-            update_train_and_summary(train, &c, m);
+            add_to_train_and_summary(train, &c, m);
             snprintf(m,1000,"1Reservation confirmed! Your ticket number is %d.\n",c.ticket);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
@@ -347,9 +392,9 @@ int serve_customer(int socket, int t_id, int s_id) {
         if (c.MenuOption == 2) {
             if (get_customer_ticket(socket,&c) == -1) continue;
             char results[500];
-            // NEED TO ADD SEMAPHORES TO SUMMARY FILE
-            printf("ticket: %d\n",c.ticket);
+            wait_read(-1);
             printCustomerInfo(&c,results);
+            signal_read(-1);
             snprintf(m,1000,"1Inquiry Results:\n%s\n",results);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
@@ -362,8 +407,8 @@ int serve_customer(int socket, int t_id, int s_id) {
         if (c.MenuOption == 4) {
             if (get_customer_ticket(socket,&c) == -1) continue;
             if (confirm_cancel(socket,&c) == -1) continue;
-            // NEED TO OPEN TRAIN SEATS BACK UP
-            deleteCustomer(&c);
+            // NEED TO GET CUSTOMER STRUCT FROM SUMMARY FILE
+            remove_from_train_and_summary(&c);
             continue;
         }
         break;
@@ -431,8 +476,10 @@ int initialize_semaphores_threads(struct customer_queue* q, int reset_semaphores
     if (reset_semaphores == 1) {
         sem_unlink("/train1_read");
         sem_unlink("/train2_read");
+        sem_unlink("/summary_read");
         sem_unlink("/train1_write");
         sem_unlink("/train2_write");
+        sem_unlink("/summary_write");
     }
     if ((sem_open("/train1_read", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
         printf("failed to open semaphore for train0.\nerror number:%d",errno);
@@ -442,11 +489,19 @@ int initialize_semaphores_threads(struct customer_queue* q, int reset_semaphores
         printf("failed to open semaphore for train1.\nerror number:%d",errno);
         exit(1);
     }
+    if ((sem_open("/summary_read", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
+        printf("failed to open semaphore for train1.\nerror number:%d",errno);
+        exit(1);
+    }
     if ((sem_open("/train1_write", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
         printf("failed to open semaphore for train0.\nerror number:%d",errno);
         exit(1);
     }
     if ((sem_open("/train2_write", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
+        printf("failed to open semaphore for train1.\nerror number:%d",errno);
+        exit(1);
+    }
+    if ((sem_open("/summary_write", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
         printf("failed to open semaphore for train1.\nerror number:%d",errno);
         exit(1);
     }
