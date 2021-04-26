@@ -1,0 +1,44 @@
+Final Project Breakdown
+
+Main Server:
+    Keeps track of what seats are available and what seats are taken by who
+    Talks to Request Server
+    Only one of these
+    Need to implement some sort of semaphore in order to maintain the critical sections
+
+Request Servers:
+    N number of these servers
+    Communicates with both the customer and the Main Server
+    Take information from the customer about what the customer wants
+    Can make a reservation with the Main Server
+    Can also change reservation
+
+Customer:
+    This is the user input to the program
+    Requests seats on the train, if they are available the give your info
+    May change reservation with the Request Servers
+    Can talk with any Request Server
+    Has a menu with the following options:
+        1. Make a reservation
+        2. Inquiry about the ticket
+        3. Modify the reservation
+        4. Cancel the reservation
+        5. Exit the program
+
+
+
+
+
+APRIL 14:
+
+Use struct for train data with binary file
+    Each train will be an array with the information
+
+Summary reader should take a struct and maybe return an int for confirmation
+
+Server should return an int as confirmation for what it did (0 or 1)
+    Client should use this information to determine what the server will be sending next
+    1
+        Then there were seats available the client can send back what seats the users wants
+    0
+        Otherwise the client will tell the user there were no seats available and the server will not expect anything
