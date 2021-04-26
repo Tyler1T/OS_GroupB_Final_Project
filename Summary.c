@@ -97,11 +97,12 @@ void printCustomerInfo(char *output, int ticket){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
     int line = findCustomer(ticket);
-    int counter;
+    printf("line: %d\n",line);
+    int counter = 0;
 
     while((fgets(buffer, 1024, summary)) != NULL){
         if(counter == line){
-            sscanf(output, "%s", buffer);
+            strcpy(output, buffer);
             fclose(summary);
             return;
         }

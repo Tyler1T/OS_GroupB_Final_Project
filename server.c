@@ -6,7 +6,7 @@
 
 pthread_mutex_t lock;
 
-int get_client_info(int socket, struct clientInformation* c) {
+int get_customer_info(int socket, struct clientInformation* c) {
     char m[1000];
     strcpy(m,"0Please enter your full name: ");
     send(socket, &m, sizeof(m), MSG_NOSIGNAL);
@@ -38,6 +38,17 @@ int get_client_info(int socket, struct clientInformation* c) {
     read(socket, &m, sizeof(m));
     sscanf(m,"%d",&c->NumberOfTravelers);
     printf("%d\n",c->NumberOfTravelers);
+    return 0;
+}
+
+int get_customer_ticket(int socket, struct clientInformation* c) {
+    char m[1000];
+    int ticket;
+    strcpy(m,"0Please enter your ticket number: ");
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    read(socket, &m, sizeof(m));
+    sscanf(m,"%d",&c->ticket);
+    printf("%d\n",c->ticket);
     return 0;
 }
 
@@ -100,6 +111,21 @@ int confirm_purchase(int socket, int train, struct clientInformation* c) {
     } else {
         snprintf(m,1000,"1Reservation cancelled.\n");
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+        return -1;
+    }
+}
+
+int confirm_cancel(int socket, struct clientInformation* c) {
+    char m[1000];
+    snprintf(m,1000,"0\nAre you sure you want to cancel your reservation (yes/no): ");
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    read(socket, &m, sizeof(m));
+    if (strcmp(m,"yes") == 0) {
+        snprintf(m,1000,"1Reservation cancelled.\n");
+        send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+        // WAIT WRITE
+        return 0;
+    } else {
         return -1;
     }
 }
@@ -297,7 +323,7 @@ int serve_customer(int socket, int t_id, int s_id) {
             return 0;
         }
         if (c.MenuOption == 1) { // make reservation
-            if (get_client_info(socket,&c) == -1) continue;
+            if (get_customer_info(socket,&c) == -1) continue;
             char date[50];
             int train;
             GetTodayDate(date);
@@ -316,6 +342,27 @@ int serve_customer(int socket, int t_id, int s_id) {
             update_train_and_summary(train, &c, m);
             snprintf(m,1000,"1Reservation confirmed! Your ticket number is %d.\n",c.ticket);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+            continue;
+        }
+        if (c.MenuOption == 2) {
+            if (get_customer_ticket(socket,&c) == -1) continue;
+            char results[500];
+            // NEED TO ADD SEMAPHORES TO SUMMARY FILE
+            printCustomerInfo(results,c.ticket);
+            snprintf(m,1000,"1Inquiry Results:\n%s\n",results);
+            send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+            continue;
+        }
+        if (c.MenuOption == 3) {
+            if (get_customer_ticket(socket,&c) == -1) continue;
+            // NOT IMPLEMENTED
+            continue;
+        }
+        if (c.MenuOption == 4) {
+            if (get_customer_ticket(socket,&c) == -1) continue;
+            if (confirm_cancel(socket,&c) == -1) continue;
+            // NEED TO OPEN TRAIN SEATS BACK UP
+            deleteCustomer(&c);
             continue;
         }
         break;
