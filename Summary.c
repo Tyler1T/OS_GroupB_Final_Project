@@ -48,7 +48,7 @@ int main(int argc, char const *argv[]) {
 void addNewCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "a");
 
-    customer->ticket = findCustomer(customer);
+    customer->ticket = findCustomer(-1);
 
     fprintf(summary, "%s, ", customer->ClientName);
     fprintf(summary, "%s, ", customer->DateOfBirth);
@@ -74,21 +74,21 @@ void changeOldCustomer(struct clientInformation *customer){
     char buffer[1024];
     int line = findCustomer(customer->GovernmentID);
     int counter;
-	while((fgets(buffer, 1024, summary)) != NULL){
-		if(counter == line){
-		    fprintf(summary, "%s, ", customer->ClientName);
+    while((fgets(buffer, 1024, summary)) != NULL){
+        if(counter == line){
+            fprintf(summary, "%s, ", customer->ClientName);
             fprintf(summary, "%s, ", customer->DateOfBirth);
             fprintf(summary, "%s, ", customer->Gender);
             fprintf(summary, "%d, ", customer->GovernmentID);
             fprintf(summary, "%s, ", customer->DateOfTravel);
             fprintf(summary, "%d, ", customer->NumberOfTravelers);
             fprintf(summary, "%d\n", customer->MenuOption);
-		}else{
-			fprintf(summary, "%s", buffer);
-		}
+        }else{
+            fprintf(summary, "%s", buffer);
+        }
 
         counter++;
-	}
+    }
 
     fclose(summary);
 }
@@ -99,14 +99,14 @@ void printCustomerInfo(char *output, int ticket){
     int line = findCustomer(ticket);
     int counter;
 
-	while((fgets(buffer, 1024, summary)) != NULL){
-		if(counter == line){
-			sscanf(output, "%s", buffer);
+    while((fgets(buffer, 1024, summary)) != NULL){
+        if(counter == line){
+            sscanf(output, "%s", buffer);
             fclose(summary);
             return;
-		}
+        }
         counter++;
-	}
+    }
 }
 
 /*
@@ -120,12 +120,12 @@ void deleteCustomer(struct clientInformation *customer){
     char buffer[1024];
     int counter;
     int line = findCustomer(customer->GovernmentID);
-	while((fgets(buffer, 1024, summary)) != NULL){
-		if(counter != line){
-			fprintf(temp, "%s", buffer);
-		}
+    while((fgets(buffer, 1024, summary)) != NULL){
+        if(counter != line){
+            fprintf(temp, "%s", buffer);
+        }
         counter++;
-	}
+    }
 
     fclose(summary);
     fclose(temp);
@@ -163,11 +163,11 @@ int findCustomer(int ID){
     being served, they could not be found in the summary file, or if this is a
     returning customer that is changing their information
 */
-void modifySummary(struct clientInformation *customer){
-    int option = customer->MenuOption;
-    if(option == 1) addNewCustomer(customer);
-    else if(option == 2) printCustomerInfo(customer);
-    else if(option == 3) changeOldCustomer(customer);
-    else if(option == 4) deleteCustomer(customer);
-    else printf("Not an option\n");
-}
+// void modifySummary(struct clientInformation *customer){
+//     int option = customer->MenuOption;
+//     if(option == 1) addNewCustomer(customer);
+//     else if(option == 2) printCustomerInfo(customer);
+//     else if(option == 3) changeOldCustomer(customer);
+//     else if(option == 4) deleteCustomer(customer);
+//     else printf("Not an option\n");
+// }
