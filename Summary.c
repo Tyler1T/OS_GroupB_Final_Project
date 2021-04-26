@@ -50,6 +50,7 @@ void addNewCustomer(struct clientInformation *customer){
 
     customer->ticket = findCustomer(customer);
 
+    fprintf(summary, "%d, ", customer->ticket);
     fprintf(summary, "%s, ", customer->ClientName);
     fprintf(summary, "%s, ", customer->DateOfBirth);
     fprintf(summary, "%s, ", customer->Gender);
@@ -72,10 +73,11 @@ void addNewCustomer(struct clientInformation *customer){
 void changeOldCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "w");
     char buffer[1024];
-    int line = findCustomer(customer->GovernmentID);
+    int line = findCustomer(customer);
     int counter;
 	while((fgets(buffer, 1024, summary)) != NULL){
 		if(counter == line){
+            fprintf(summary, "%d, ", customer->ticket);
 		    fprintf(summary, "%s, ", customer->ClientName);
             fprintf(summary, "%s, ", customer->DateOfBirth);
             fprintf(summary, "%s, ", customer->Gender);
@@ -140,12 +142,13 @@ void deleteCustomer(struct clientInformation *customer){
     If that ID is found then it will return the line where the ID is
     Otherwise the function returns -1
 */
-int findCustomer(int ID){
+int findCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
-    int temp, line;
+    int temp, line, ticket;
+    ticket = customer->ticket;
     while(fgets(buffer, 1024, summary)){
-        sscanf(buffer, "%*[^,], %*[^,], %*[^,], %d",  &temp);
+        sscanf(buffer, "%d",  &temp);
         if(temp == ID){
             fclose(summary);
             return line;
