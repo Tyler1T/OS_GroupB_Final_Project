@@ -43,12 +43,12 @@ int main(int argc, char const *argv[]) {
 
 /*
     The addNewCustomer function takes a new customers information and apends
-    it to the end of the summary.txt
+    it to the end of the summary.txt, it also sets the customer ticket number
 */
 void addNewCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "a");
 
-    customer->ticket = findCustomer(-1);
+    customer->ticket = findCustomer(customer);
 
     fprintf(summary, "%d, ", customer->ticket);
     fprintf(summary, "%s, ", customer->ClientName);
@@ -95,10 +95,10 @@ void changeOldCustomer(struct clientInformation *customer){
     fclose(summary);
 }
 
-void printCustomerInfo(char *output, int ticket){
+void printCustomerInfo(struct clientInformation *customer, char *output){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
-    int line = findCustomer(ticket);
+    int line = findCustomer(customer);
     printf("line: %d\n",line);
     int counter = 0;
 
@@ -122,7 +122,7 @@ void deleteCustomer(struct clientInformation *customer){
     FILE* temp = fopen("temp.txt", "a");
     char buffer[1024];
     int counter;
-    int line = findCustomer(customer->GovernmentID);
+    int line = findCustomer(customer);
     while((fgets(buffer, 1024, summary)) != NULL){
         if(counter != line){
             fprintf(temp, "%s", buffer);
@@ -150,7 +150,7 @@ int findCustomer(struct clientInformation *customer){
     ticket = customer->ticket;
     while(fgets(buffer, 1024, summary)){
         sscanf(buffer, "%d",  &temp);
-        if(temp == ID){
+        if(temp == ticket){
             fclose(summary);
             return line;
         }
