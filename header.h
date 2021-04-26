@@ -40,6 +40,7 @@ struct customer_queue {
     int sockets[100];
     int waiting;
     int first;
+    int port;
 };
 
 int seatChecker(int trainNum);
@@ -50,19 +51,19 @@ int GetTodayDate(char *todaysDate);
 int create_socket(int port, struct sockaddr_in* address);
 int initialize_semaphores_threads(struct customer_queue* q, int reset);
 int thread_loop(void* args);
-int serve_customer(int socket, int id);
+int serve_customer(int socket, int t_id, int s_id);
 int get_client_info(int socket, struct clientInformation* c);
-int verify_enough_seats(int socket, int train, struct clientInformation* c);
-int confirm_purchase(int socket, int train, struct clientInformation* c);
-int check_seat(int train, int row, int column);
-int verify_selection(int socket, int train, struct clientInformation* c, char* m);
-int write_seat(int train, int row, int column);
-int update_train_and_summary(int train, struct clientInformation* c, char* m);
-void send_available_seats(int socket, int train, struct clientInformation* c);
 int signal_write(int train);
 int wait_write(int train);
 int signal_read(int train);
 int wait_read(int train);
+int verify_enough_seats(int socket, int train, struct clientInformation* c);
+int confirm_purchase(int socket, int train, struct clientInformation* c);
+void send_available_seats(int socket, int train, struct clientInformation* c);
+int check_seat(int train, int row, int column);
+int verify_selection(int socket, int train, struct clientInformation* c, char* m);
+int write_seat(int train, int row, int column);
+int update_train_and_summary(int train, struct clientInformation* c, char* m);
 int main(int argc, char const *argv[]);
 
 int connect_to_server(char* ip_addr, int port);

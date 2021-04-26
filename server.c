@@ -198,17 +198,11 @@ int verify_selection(int socket, int train, struct clientInformation* c, char* m
         int column = seat[1] - 49;
         if (check_seat(train,row,column) == -1) {
             printf("seat verification failed.\n");
-            char w_train_sem_name[14];
-            snprintf(w_train_sem_name,14,"/train%d_write",train);
-            sem_t* sem_train_w;
-            if ((sem_train_w = sem_open(w_train_sem_name, O_RDWR)) == SEM_FAILED) {
-                printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
-                exit(1);
-            }
-            sem_post(sem_train_w);
+            signal_write(train);
             return -1;
         }
     }
+    strcpy(c->seats, m);
     return 0;
 }
 
@@ -281,13 +275,14 @@ int wait_write(int train) {
     return 0;
 }
 
-int serve_customer(int socket, int id) {
+int serve_customer(int socket, int t_id, int s_id) {
     struct clientInformation c;
+    c.server = s_id;
     char m[1000];
     int first = 1;
     while (1) {
         if (first) {
-            snprintf(m,1000,"0Hello! My name is THREAD-%d, How may I assist you today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n",id);
+            snprintf(m,1000,"0Hello! My name is THREAD-%d, How may I assist you today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n",t_id);
             first = 0;
         } else {
             strcpy(m,"0\nIs there anything else I can help you with today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n");
@@ -347,7 +342,7 @@ int thread_loop(void* args) {
             q->waiting = q->waiting -1;
         }
         pthread_mutex_unlock(&lock);
-        if (my_customer >= 0) serve_customer(my_customer,id);
+        if (my_customer >= 0) serve_customer(my_customer,id,q->port);
     }
 }
 
