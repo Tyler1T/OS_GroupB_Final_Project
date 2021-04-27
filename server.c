@@ -3,6 +3,7 @@
 // nathan.t.baker@okstate.edu
 
 #include "header.h"
+#define SUMMARY 0
 
 pthread_mutex_t lock;
 
@@ -108,8 +109,30 @@ int confirm_cancel(int socket, struct clientInformation* c) {
     send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     read(socket, &m, sizeof(m));
     if (strcmp(m,"yes") == 0) {
-        // WAIT WRITE
         return 0;
+    } else {
+        return -1;
+    }
+}
+
+int confirm_modify(int socket, struct clientInformation* c) {
+    char m[1000];
+    snprintf(m,1000,"0\nReservation modifications include reducing the number of seats or changing seat choice.\nIf you want to reserve additional seats you must make a new reservation.\nAre you sure you want to modify your reservation (yes/no): ");
+    send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+    read(socket, &m, sizeof(m));
+    if (strcmp(m,"yes") == 0) {
+        int n;
+        snprintf(m,1000,"0What is you new desired number of travelers [up to %d]? ",c->NumberOfTravelers);
+        send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+        read(socket, &m, sizeof(m));
+        sscanf(m,"%d",&n);
+        if (n > c->NumberOfTravelers || n < 1) {
+            snprintf(m,1000,"1Invalid selection. Modification cancelled.\n");
+            send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+            read(socket, &m, sizeof(m));
+            return -1;
+        }
+        return n;
     } else {
         return -1;
     }
@@ -237,19 +260,7 @@ int add_to_train(int train, struct clientInformation* c, char* m) {
     return 0;
 }
 
-int remove_from_train(struct clientInformation* c) {
-    char date[50];
-    int train;
-    GetTodayDate(date);
-    printf("%s\n",date);
-    if (strcmp(c->DateOfTravel,date) == 0) train = 1;
-    else {
-        GetTomorrowDate(date);
-        if (strcmp(c->DateOfTravel,date) == 0) train = 2;
-        else train = -1;
-    }
-    printf("\ndate %s\ntrain %d\n",c->DateOfTravel,train);
-    wait_write(train);
+int remove_from_train(struct clientInformation* c, int train) {
     char output[100];
     showAvailable(train, output);
     printf("%s\n",output);
@@ -265,8 +276,22 @@ int remove_from_train(struct clientInformation* c) {
     }
     showAvailable(train, output);
     printf("%s\n",output);
-    signal_write(train);
     return 0;
+}
+
+int get_train(struct clientInformation* c) {
+    char date[50];
+    int train;
+    GetTodayDate(date);
+    printf("%s\n",date);
+    if (strcmp(c->DateOfTravel,date) == 0) train = 1;
+    else {
+        GetTomorrowDate(date);
+        if (strcmp(c->DateOfTravel,date) == 0) train = 2;
+        else train = -1;
+    }
+    printf("\ndate %s\ntrain %d\n",c->DateOfTravel,train);
+    return train;
 }
 
 int signal_read(int train) {
@@ -298,7 +323,7 @@ int wait_read(int train) {
 int signal_write(int train) {
     char sem_name[25];
     if (train > 0) snprintf(sem_name,25,"/train%d",train);
-    else strcpy(sem_name,"/summary_write");
+    else if (train == SUMMARY) strcpy(sem_name,"/summary_write");
     sem_t* sem;
     if ((sem = sem_open(sem_name, O_RDWR)) == SEM_FAILED) {
         printf("failed to open write semaphore for train%d.\nerror numububer:%d",train,errno);
@@ -311,7 +336,7 @@ int signal_write(int train) {
 int wait_write(int train) {
     char sem_name[25];
     if (train > 0) snprintf(sem_name,25,"/train%d",train);
-    else strcpy(sem_name,"/summary_write");
+    else if (train == SUMMARY) strcpy(sem_name,"/summary_write");
     sem_t* sem;
     if ((sem = sem_open(sem_name, O_RDWR)) == SEM_FAILED) {
         printf("failed to open write semaphore for train%d.\nerror number:%d",train,errno);
@@ -373,7 +398,7 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
                 if (strcmp(c.DateOfTravel,date) == 0) train = 2;
                 else train = -1;
             }
-            strcpy(m,"0Please wait...\n");
+            strcpy(m,"1Please wait...\n");
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             strcpy(m,"");
             if (check_thread_permission(t_id,train, c.NumberOfTravelers,seats_for_thread) == -1) continue;
@@ -387,9 +412,9 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             signal_write(train);
             seats_for_thread[t_id+NUM_THREADS] = 0;
             seats_for_thread[t_id] = 0;
-            wait_write(-1);
+            wait_write(SUMMARY);
             addNewCustomer(&c);
-            signal_write(-1);
+            signal_write(SUMMARY);
             snprintf(m,1000,"1Reservation confirmed! Your ticket number is %d.\n",c.ticket);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
@@ -397,28 +422,58 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
         if (c.MenuOption == 2) {
             if (get_customer_ticket(socket,&c) == -1) continue;
             char results[500];
-            wait_read(-1);
+            wait_read(SUMMARY);
             printCustomerInfo(&c,results);
-            signal_read(-1);
+            signal_read(SUMMARY);
             snprintf(m,1000,"1Inquiry Results:\n%s\n",results);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
         }
         if (c.MenuOption == 3) {
             if (get_customer_ticket(socket,&c) == -1) continue;
-            // NOT IMPLEMENTED
+            wait_read(SUMMARY);
+            createCustomer(&c);
+            signal_read(SUMMARY);
+            int train = get_train(&c);
+            if (train == -1) {
+                snprintf(m,1000,"1The date for this train has passed, cannot modify reservation.\n");
+                send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+                continue;
+            }
+            int new_number = confirm_modify(socket,&c);
+            if (new_number == -1) continue;
+            wait_write(train);
+            remove_from_train(&c,train);
+            c.NumberOfTravelers = new_number;
+            send_available_seats(socket, train, &c);
+            read(socket, &m, sizeof(m));
+            if (verify_selection(socket, train, &c, m) == -1) continue;
+            signal_write(train);
+            wait_write(SUMMARY);
+            changeOldCustomer(&c);
+            signal_write(SUMMARY);
+            snprintf(m,1000,"1Reservation modified.\n");
+            send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
         }
         if (c.MenuOption == 4) {
             if (get_customer_ticket(socket,&c) == -1) continue;
-            wait_read(-1);
+            wait_read(SUMMARY);
             createCustomer(&c);
-            signal_read(-1);
+            signal_read(SUMMARY);
+            int train = get_train(&c);
+            if (train == -1) {
+                snprintf(m,1000,"1The date for this train has passed, no need to cancel reservation.\n");
+                send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+                continue;
+            }
             if (confirm_cancel(socket,&c) == -1) continue;
-            remove_from_train(&c);
-            wait_write(-1);
+            wait_write(train);
+            remove_from_train(&c,train);
+            signal_write(train);
+            wait_write(SUMMARY);
             deleteCustomer(&c);
-            signal_write(-1);
+            signal_write(SUMMARY);
             snprintf(m,1000,"1Reservation cancelled.\n");
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
