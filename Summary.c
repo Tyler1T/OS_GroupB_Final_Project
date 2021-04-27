@@ -161,6 +161,49 @@ int findCustomer(struct clientInformation *customer){
     return line;
 }
 
+int findCustomerTicket(int ticket){
+    FILE* summary = fopen("Summary.txt", "r");
+    char buffer[1024];
+    int temp = 0;
+    int line = 0;
+    while(fgets(buffer, 1024, summary)){
+        sscanf(buffer, "%d",  &temp);
+        if(temp == ticket){
+            fclose(summary);
+            return line;
+        }
+        line++;
+    }
+    fclose(summary);
+    return line;
+}
+
+void createCustomer(struct clientInformation *customer, int ticket){
+    FILE* summary = fopen("Summary.txt", "r");
+    char buffer[1024];
+    int temp = 0;
+    int line = 0;
+    while(fgets(buffer, 1024, summary)){
+        sscanf(buffer, "%d",  &temp);
+        if(temp == ticket){
+            sscanf(buffer, "%*[^,], %s",  customer->ClientName);
+            sscanf(buffer, "%*[^,], %*[^,], %s",  customer->DateOfBirth);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %s",  customer->Gender);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %s",  customer->Gender);
+            strcpy(c.DateOfTravel, "1/1/2021");
+            c.GovernmentID = 15;
+            c.NumberOfTravelers = 3;
+            c.MenuOption = 2;
+            line++;
+            break;
+        }
+    }
+
+    fclose(summary);
+
+    if(line == 0) printf("Customer was not found\n");
+}
+
 
 /*
     modifySummary function is used to determine whether or not there is a new customer

@@ -79,4 +79,7 @@ void changeOldCustomer(struct clientInformation *customer);
 void deleteCustomer(struct clientInformation *customer);
 void printCustomerInfo(struct clientInformation *customer, char *output);
 int findCustomer(struct clientInformation *customer);
+void createCustomer(struct clientInformation *customer, int ticket);
+int findCustomerTicket(int ticket);
+
 #endif
