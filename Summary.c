@@ -190,8 +190,9 @@ void createCustomer(struct clientInformation *customer, int ticket){
             sscanf(buffer, "%*[^,], %*[^,], %s",  customer->DateOfBirth);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %s",  customer->Gender);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %s",  customer->DateOfTravel);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  customer->GovernmentID);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  customer->NumberOfTravelers);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->GovernmentID);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->NumberOfTravelers);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %s",  customer->seats);
             line++;
             break;
         }
