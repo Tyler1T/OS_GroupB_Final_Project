@@ -178,21 +178,22 @@ int findCustomerTicket(int ticket){
     return line;
 }
 
-void createCustomer(struct clientInformation *customer, int ticket){
+void createCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
     int temp = 0;
     int line = 0;
+    int ticket = customer->ticket;
     while(fgets(buffer, 1024, summary)){
         sscanf(buffer, "%d",  &temp);
         if(temp == ticket){
             sscanf(buffer, "%*[^,], %s",  customer->ClientName);
             sscanf(buffer, "%*[^,], %*[^,], %s",  customer->DateOfBirth);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %s",  customer->Gender);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %s",  customer->DateOfTravel);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->GovernmentID);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->GovernmentID);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %s",  customer->DateOfTravel);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->NumberOfTravelers);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %s",  customer->seats);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %s",  customer->seats);
             line++;
             break;
         }

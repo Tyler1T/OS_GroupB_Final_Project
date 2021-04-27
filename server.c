@@ -108,8 +108,6 @@ int confirm_cancel(int socket, struct clientInformation* c) {
     send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     read(socket, &m, sizeof(m));
     if (strcmp(m,"yes") == 0) {
-        snprintf(m,1000,"1Reservation cancelled.\n");
-        send(socket, &m, sizeof(m), MSG_NOSIGNAL);
         // WAIT WRITE
         return 0;
     } else {
@@ -250,6 +248,7 @@ int remove_from_train(struct clientInformation* c) {
         if (strcmp(c->DateOfTravel,date) == 0) train = 2;
         else train = -1;
     }
+    printf("\ndate %s\ntrain %d\n",c->DateOfTravel,train);
     wait_write(train);
     char output[100];
     showAvailable(train, output);
@@ -322,19 +321,21 @@ int wait_write(int train) {
     return 0;
 }
 
-void check_thread_permission(int id, int train, int seats, int* seats_for_thread) {
+int check_thread_permission(int id, int train, int seats, int* seats_for_thread) {
     seats_for_thread[id+(train-1)*NUM_THREADS] = seats;
     int largest;
+    if (seats <= 0) return -1;
+    if (train <= 0) return -1;
     while (1) {
         largest = 1;
         for (int i=0; i<NUM_THREADS; i++) {
             if (seats_for_thread[id+(train-1)*NUM_THREADS] < seats_for_thread[i+(train-1)*NUM_THREADS]) {
-                printf("index %d was larger than %d\n",i+(train-1)*NUM_THREADS,seats);
+                // printf("index %d was larger than %d\n",i+(train-1)*NUM_THREADS,seats);
                 largest = 0;
                 break;
             }
         }
-        if (largest == 1) return;
+        if (largest == 1) return 0;
         sleep(1);
     }
 }
@@ -372,7 +373,10 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
                 if (strcmp(c.DateOfTravel,date) == 0) train = 2;
                 else train = -1;
             }
-            check_thread_permission(t_id,train, c.NumberOfTravelers,seats_for_thread);
+            strcpy(m,"0Please wait...\n");
+            send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+            strcpy(m,"");
+            if (check_thread_permission(t_id,train, c.NumberOfTravelers,seats_for_thread) == -1) continue;
             wait_write(train);
             if (verify_enough_seats(socket, train, &c) == -1) continue;
             if (confirm_purchase(socket, train, &c) == -1) continue;
@@ -407,12 +411,16 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
         }
         if (c.MenuOption == 4) {
             if (get_customer_ticket(socket,&c) == -1) continue;
+            wait_read(-1);
+            createCustomer(&c);
+            signal_read(-1);
             if (confirm_cancel(socket,&c) == -1) continue;
-            // NEED TO GET CUSTOMER STRUCT FROM SUMMARY FILE
             remove_from_train(&c);
             wait_write(-1);
             deleteCustomer(&c);
             signal_write(-1);
+            snprintf(m,1000,"1Reservation cancelled.\n");
+            send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
         }
         break;

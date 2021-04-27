@@ -59,6 +59,7 @@ int signal_write(int train);
 int wait_write(int train);
 int signal_read(int train);
 int wait_read(int train);
+int check_thread_permission(int id, int train, int seats, int* seats_for_thread);
 int verify_enough_seats(int socket, int train, struct clientInformation* c);
 int confirm_purchase(int socket, int train, struct clientInformation* c);
 int confirm_cancel(int socket, struct clientInformation* c);
@@ -80,7 +81,7 @@ void changeOldCustomer(struct clientInformation *customer);
 void deleteCustomer(struct clientInformation *customer);
 void printCustomerInfo(struct clientInformation *customer, char *output);
 int findCustomer(struct clientInformation *customer);
-void createCustomer(struct clientInformation *customer, int ticket);
+void createCustomer(struct clientInformation *customer);
 int findCustomerTicket(int ticket);
 
 #endif
