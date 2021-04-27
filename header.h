@@ -37,6 +37,7 @@ struct clientInformation{
 
 struct customer_queue {
     pthread_t threads[NUM_THREADS];
+    int seats_for_thread[2*NUM_THREADS];
     int sockets[100];
     int waiting;
     int first;

@@ -323,7 +323,22 @@ int wait_write(int train) {
     return 0;
 }
 
-int serve_customer(int socket, int t_id, int s_id) {
+void check_thread_permission(int id, int train, int seats, int* seats_for_thread) {
+    seats_for_thread[id+(train-1)*NUM_THREADS] = seats;
+    int largest = 1;
+    while (1) {
+        for (int i=0; i<NUM_THREADS; i++) {
+            if (seats_for_thread[id+(train-1)*NUM_THREADS] < seats_for_thread[i+(train-1)*NUM_THREADS]) {
+                largest = 0;
+                break;
+            }
+        }
+        if (largest == 1) return;
+        sleep(1);
+    }
+}
+
+int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
     struct clientInformation c;
     c.server = s_id;
     char m[1000];
@@ -356,6 +371,7 @@ int serve_customer(int socket, int t_id, int s_id) {
                 if (strcmp(c.DateOfTravel,date) == 0) train = 2;
                 else train = -1;
             }
+            check_thread_permission(id,train, c.NumberOfTravelers,seats_for_thread);
             wait_write(train);
             if (verify_enough_seats(socket, train, &c) == -1) continue;
             if (confirm_purchase(socket, train, &c) == -1) continue;
@@ -364,6 +380,8 @@ int serve_customer(int socket, int t_id, int s_id) {
             if (verify_selection(socket, train, &c, m) == -1) continue;
             add_to_train(train, &c, m);
             signal_write(train);
+            seats_for_thread[id+NUM_THREADS] = 0;
+            seats_for_thread[id] = 0;
             wait_write(-1);
             addNewCustomer(c);
             signal_write(-1);
@@ -411,6 +429,8 @@ int thread_loop(void* args) {
         }
     }
     while(1) {
+        q->seats_for_thread[id] = 0;
+        q->seats_for_thread[id+NUM_THREADS] = 0;
         int my_customer = -1;
         pthread_mutex_lock(&lock);
         if (q->waiting > 0) {
@@ -420,7 +440,7 @@ int thread_loop(void* args) {
             q->waiting = q->waiting -1;
         }
         pthread_mutex_unlock(&lock);
-        if (my_customer >= 0) serve_customer(my_customer,id,q->port);
+        if (my_customer >= 0) serve_customer(my_customer,id,q->port,q->seats_for_thread);
     }
 }
 
