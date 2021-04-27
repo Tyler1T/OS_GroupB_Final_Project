@@ -7,7 +7,7 @@
  * Program Description: This file takes input from the server and then
     determines if a customer is in the summary file or not
  */
-
+/*
 int main(int argc, char const *argv[]) {
     struct clientInformation c;
     struct clientInformation *info = &c;
@@ -18,7 +18,7 @@ int main(int argc, char const *argv[]) {
     printf("%s\n", buffer);
 
     return 0;
-}
+}*/
 
 
 /*
