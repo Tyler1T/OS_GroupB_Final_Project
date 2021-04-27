@@ -55,30 +55,6 @@ void addNewCustomer(struct clientInformation *customer){
     information
 */
 void changeOldCustomer(struct clientInformation *customer){
-    /*
-    FILE* summary = fopen("Summary.txt", "w+");
-    char buffer[1024];
-    int line = findCustomer(customer);
-    int counter = 0;
-    while((fgets(buffer, 1024, summary)) != NULL){
-        printf("Line: %d\n", counter);
-        if(counter == line){
-            fprintf(summary, "%d, ", customer->ticket);
-            fprintf(summary, "%s, ", customer->ClientName);
-            fprintf(summary, "%s, ", customer->DateOfBirth);
-            fprintf(summary, "%s, ", customer->Gender);
-            fprintf(summary, "%d, ", customer->GovernmentID);
-            fprintf(summary, "%s, ", customer->DateOfTravel);
-            fprintf(summary, "%d, ", customer->NumberOfTravelers);
-            fprintf(summary, "%d\n", customer->MenuOption);
-        }else{
-            fprintf(summary, "%s", buffer);
-        }
-
-        counter++;
-    }
-    fclose(summary);*/
-
     deleteCustomer(customer);
     addNewCustomer(customer);
 }
