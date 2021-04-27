@@ -189,11 +189,9 @@ void createCustomer(struct clientInformation *customer, int ticket){
             sscanf(buffer, "%*[^,], %s",  customer->ClientName);
             sscanf(buffer, "%*[^,], %*[^,], %s",  customer->DateOfBirth);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %s",  customer->Gender);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %s",  customer->Gender);
-            strcpy(c.DateOfTravel, "1/1/2021");
-            c.GovernmentID = 15;
-            c.NumberOfTravelers = 3;
-            c.MenuOption = 2;
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %s",  customer->DateOfTravel);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  customer->GovernmentID);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  customer->NumberOfTravelers);
             line++;
             break;
         }
