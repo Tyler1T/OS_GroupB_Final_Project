@@ -11,35 +11,15 @@
 int main(int argc, char const *argv[]) {
     struct clientInformation c;
     struct clientInformation *info = &c;
-
-    strcpy(c.ClientName, "Tyler");
-    strcpy(c.DateOfBirth, "6/23/1999");
-    strcpy(c.Gender, "Male");
-    strcpy(c.DateOfTravel, "1/1/2021");
-    c.GovernmentID = 15;
-    c.NumberOfTravelers = 3;
-    c.MenuOption = 2;
-
-    struct clientInformation b;
-    struct clientInformation *infoB = &b;
-
-    strcpy(b.ClientName, "Tom");
-    strcpy(b.DateOfBirth, "6/23/1999");
-    strcpy(b.Gender, "Male");
-    strcpy(b.DateOfTravel, "1/1/2021");
-    b.GovernmentID = 2;
-    b.NumberOfTravelers = 3;
-    b.MenuOption = 2;
-
-    modifySummary(infoB);
-    modifySummary(info);
-
-    b.NumberOfTravelers = 10;
-    modifySummary(infoB);
+    c.ticket = 7;
+    char buffer[1024];
+    createCustomer(info);
+    printCustomerInfo(info, buffer);
+    printf("%s\n", buffer);
 
     return 0;
-}
-*/
+}*/
+
 
 /*
     The addNewCustomer function takes a new customers information and apends
@@ -98,7 +78,7 @@ void printCustomerInfo(struct clientInformation *customer, char *output){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
     int line = findCustomer(customer);
-    printf("ticket: %d\nline: %d\n",customer->ticket,line);
+    //printf("ticket: %d\nline: %d\n",customer->ticket,line);
     int counter = 0;
 
     while((fgets(buffer, 1024, summary)) != NULL){
@@ -185,15 +165,16 @@ void createCustomer(struct clientInformation *customer){
     int line = 0;
     int ticket = customer->ticket;
     while(fgets(buffer, 1024, summary)){
+        printf("%s\n", buffer);
         sscanf(buffer, "%d",  &temp);
         if(temp == ticket){
-            sscanf(buffer, "%*[^,], %s",  customer->ClientName);
-            sscanf(buffer, "%*[^,], %*[^,], %s",  customer->DateOfBirth);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %s",  customer->Gender);
+            sscanf(buffer, "%*[^,], %[^,]",  customer->ClientName);
+            sscanf(buffer, "%*[^,], %*[^,], %[^,]",  customer->DateOfBirth);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %[^,]",  customer->Gender);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->GovernmentID);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %s",  customer->DateOfTravel);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^,]",  customer->DateOfTravel);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->NumberOfTravelers);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %s",  customer->seats);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^,]",  customer->seats);
             line++;
             break;
         }
@@ -203,18 +184,3 @@ void createCustomer(struct clientInformation *customer){
 
     if(line == 0) printf("Customer was not found\n");
 }
-
-
-/*
-    modifySummary function is used to determine whether or not there is a new customer
-    being served, they could not be found in the summary file, or if this is a
-    returning customer that is changing their information
-*/
-// void modifySummary(struct clientInformation *customer){
-//     int option = customer->MenuOption;
-//     if(option == 1) addNewCustomer(customer);
-//     else if(option == 2) printCustomerInfo(customer);
-//     else if(option == 3) changeOldCustomer(customer);
-//     else if(option == 4) deleteCustomer(customer);
-//     else printf("Not an option\n");
-// }
