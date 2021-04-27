@@ -7,18 +7,22 @@
  * Program Description: This file takes input from the server and then
     determines if a customer is in the summary file or not
  */
-/*
+
 int main(int argc, char const *argv[]) {
     struct clientInformation c;
     struct clientInformation *info = &c;
-    c.ticket = 7;
+    info->NumberOfTravelers = 3;
     char buffer[1024];
     createCustomer(info);
     printCustomerInfo(info, buffer);
-    printf("%s\n", buffer);
+    info->NumberOfTravelers = 45;
+    changeOldCustomer(info);
+    printCustomerInfo(info, buffer);
+    printf("%d\n", info->ticket);
+
 
     return 0;
-}*/
+}
 
 
 /*
@@ -51,11 +55,13 @@ void addNewCustomer(struct clientInformation *customer){
     information
 */
 void changeOldCustomer(struct clientInformation *customer){
-    FILE* summary = fopen("Summary.txt", "w");
+    /*
+    FILE* summary = fopen("Summary.txt", "w+");
     char buffer[1024];
     int line = findCustomer(customer);
     int counter = 0;
     while((fgets(buffer, 1024, summary)) != NULL){
+        printf("Line: %d\n", counter);
         if(counter == line){
             fprintf(summary, "%d, ", customer->ticket);
             fprintf(summary, "%s, ", customer->ClientName);
@@ -71,9 +77,16 @@ void changeOldCustomer(struct clientInformation *customer){
 
         counter++;
     }
-    fclose(summary);
+    fclose(summary);*/
+
+    deleteCustomer(customer);
+    addNewCustomer(customer);
 }
 
+/*
+    The printCustomerInfo function will take a customer, find them in the
+    summary file, and print their info to a buffer array
+*/
 void printCustomerInfo(struct clientInformation *customer, char *output){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
@@ -174,7 +187,7 @@ void createCustomer(struct clientInformation *customer){
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->GovernmentID);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^,]",  customer->DateOfTravel);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->NumberOfTravelers);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^,]",  customer->seats);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^\n]",  customer->seats);
             line++;
             break;
         }
