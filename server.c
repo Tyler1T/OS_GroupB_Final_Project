@@ -283,14 +283,16 @@ int get_train(struct clientInformation* c) {
     char date[50];
     int train;
     GetTodayDate(date);
+    printf("customer date: %s\n",c->DateOfTravel);
     printf("%s\n",date);
     if (strcmp(c->DateOfTravel,date) == 0) train = 1;
     else {
         GetTomorrowDate(date);
+        printf("%s\n",date);
         if (strcmp(c->DateOfTravel,date) == 0) train = 2;
         else train = -1;
     }
-    printf("\ndate %s\ntrain %d\n",c->DateOfTravel,train);
+    printf("train %d\n",train);
     return train;
 }
 
@@ -366,11 +368,13 @@ int check_thread_permission(int id, int train, int seats, int* seats_for_thread)
 }
 
 int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
+    const struct clientInformation empty_struct;
     struct clientInformation c;
     c.server = s_id;
     char m[1000];
     int first = 1;
     while (1) {
+        c = empty_struct;
         if (first) {
             snprintf(m,1000,"0Hello! My name is THREAD-%d, How may I assist you today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n",t_id);
             first = 0;
