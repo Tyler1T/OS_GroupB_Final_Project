@@ -65,8 +65,8 @@ void send_available_seats(int socket, int train, struct clientInformation* c);
 int check_seat(int train, int row, int column);
 int verify_selection(int socket, int train, struct clientInformation* c, char* m);
 int write_seat(int train, int row, int column, int update);
-int add_to_train_and_summary(int train, struct clientInformation* c, char* m);
-int remove_from_train_and_summary(struct clientInformation* c);
+int add_to_train(int train, struct clientInformation* c, char* m);
+int remove_from_train(struct clientInformation* c);
 int main(int argc, char const *argv[]);
 
 int connect_to_server(char* ip_addr, int port);

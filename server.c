@@ -221,7 +221,7 @@ int verify_selection(int socket, int train, struct clientInformation* c, char* m
     return 0;
 }
 
-int add_to_train_and_summary(int train, struct clientInformation* c, char* m) {
+int add_to_train(int train, struct clientInformation* c, char* m) {
     char output[100];
     showAvailable(train, output);
     printf("%s\n",output);
@@ -237,14 +237,10 @@ int add_to_train_and_summary(int train, struct clientInformation* c, char* m) {
     }
     showAvailable(train, output);
     printf("%s\n",output);
-    wait_write(-1);
-    addNewCustomer(c);
-    signal_write(-1);
-    signal_write(train);
     return 0;
 }
 
-int remove_from_train_and_summary(struct clientInformation* c) {
+int remove_from_train(struct clientInformation* c) {
     char date[50];
     int train;
     GetTodayDate(date);
@@ -271,9 +267,6 @@ int remove_from_train_and_summary(struct clientInformation* c) {
     }
     showAvailable(train, output);
     printf("%s\n",output);
-    wait_write(-1);
-    deleteCustomer(c);
-    signal_write(-1);
     signal_write(train);
     return 0;
 }
@@ -363,12 +356,17 @@ int serve_customer(int socket, int t_id, int s_id) {
                 if (strcmp(c.DateOfTravel,date) == 0) train = 2;
                 else train = -1;
             }
+            wait_write(train);
             if (verify_enough_seats(socket, train, &c) == -1) continue;
             if (confirm_purchase(socket, train, &c) == -1) continue;
             send_available_seats(socket, train, &c);
             read(socket, &m, sizeof(m));
             if (verify_selection(socket, train, &c, m) == -1) continue;
-            add_to_train_and_summary(train, &c, m);
+            add_to_train(train, &c, m);
+            signal_write(train);
+            wait_write(-1);
+            addNewCustomer(c);
+            signal_write(-1);
             snprintf(m,1000,"1Reservation confirmed! Your ticket number is %d.\n",c.ticket);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
@@ -392,7 +390,10 @@ int serve_customer(int socket, int t_id, int s_id) {
             if (get_customer_ticket(socket,&c) == -1) continue;
             if (confirm_cancel(socket,&c) == -1) continue;
             // NEED TO GET CUSTOMER STRUCT FROM SUMMARY FILE
-            remove_from_train_and_summary(&c);
+            remove_from_train(&c);
+            wait_write(-1);
+            deleteCustomer(c);
+            signal_write(-1);
             continue;
         }
         break;
