@@ -77,12 +77,11 @@ int verify_enough_seats(int socket, int train, struct clientInformation* c) {
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
         return -1;
     }
-    wait_write(train);
     int available = seatChecker(train);
-    signal_write(train);
     if ((c->NumberOfTravelers) > available) {
         snprintf(m,1000,"1Sorry, there are only %d seats availble for the selected date.\nReservation cancelled.\n",available);
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+        signal_write(train);
         return -1;
     }
     return 0;
@@ -94,11 +93,11 @@ int confirm_purchase(int socket, int train, struct clientInformation* c) {
     send(socket, &m, sizeof(m), MSG_NOSIGNAL);
     read(socket, &m, sizeof(m));
     if (strcmp(m,"yes") == 0) {
-        wait_write(train);
         return 0;
     } else {
         snprintf(m,1000,"1Reservation cancelled.\n");
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+        signal_write(train);
         return -1;
     }
 }
@@ -312,7 +311,7 @@ int signal_write(int train) {
 
 int wait_write(int train) {
     char sem_name[25];
-    if (train > 0) snprintf(sem_name,25,"/train",train);
+    if (train > 0) snprintf(sem_name,25,"/train%d",train);
     else strcpy(sem_name,"/summary_write");
     sem_t* sem;
     if ((sem = sem_open(sem_name, O_RDWR)) == SEM_FAILED) {
@@ -325,10 +324,12 @@ int wait_write(int train) {
 
 void check_thread_permission(int id, int train, int seats, int* seats_for_thread) {
     seats_for_thread[id+(train-1)*NUM_THREADS] = seats;
-    int largest = 1;
+    int largest;
     while (1) {
+        largest = 1;
         for (int i=0; i<NUM_THREADS; i++) {
             if (seats_for_thread[id+(train-1)*NUM_THREADS] < seats_for_thread[i+(train-1)*NUM_THREADS]) {
+                printf("index %d was larger than %d\n",i+(train-1)*NUM_THREADS,seats);
                 largest = 0;
                 break;
             }
@@ -371,7 +372,7 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
                 if (strcmp(c.DateOfTravel,date) == 0) train = 2;
                 else train = -1;
             }
-            check_thread_permission(id,train, c.NumberOfTravelers,seats_for_thread);
+            check_thread_permission(t_id,train, c.NumberOfTravelers,seats_for_thread);
             wait_write(train);
             if (verify_enough_seats(socket, train, &c) == -1) continue;
             if (confirm_purchase(socket, train, &c) == -1) continue;
@@ -380,10 +381,10 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             if (verify_selection(socket, train, &c, m) == -1) continue;
             add_to_train(train, &c, m);
             signal_write(train);
-            seats_for_thread[id+NUM_THREADS] = 0;
-            seats_for_thread[id] = 0;
+            seats_for_thread[t_id+NUM_THREADS] = 0;
+            seats_for_thread[t_id] = 0;
             wait_write(-1);
-            addNewCustomer(c);
+            addNewCustomer(&c);
             signal_write(-1);
             snprintf(m,1000,"1Reservation confirmed! Your ticket number is %d.\n",c.ticket);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
@@ -410,7 +411,7 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             // NEED TO GET CUSTOMER STRUCT FROM SUMMARY FILE
             remove_from_train(&c);
             wait_write(-1);
-            deleteCustomer(c);
+            deleteCustomer(&c);
             signal_write(-1);
             continue;
         }

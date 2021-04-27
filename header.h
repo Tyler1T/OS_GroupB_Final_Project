@@ -19,7 +19,7 @@
 #ifndef header
 #define header
 
-#define NUM_THREADS 2
+#define NUM_THREADS 3
 
 struct clientInformation{
     char ClientName[50];
@@ -52,7 +52,7 @@ int GetTodayDate(char *todaysDate);
 int create_socket(int port, struct sockaddr_in* address);
 int initialize_semaphores_threads(struct customer_queue* q, int reset);
 int thread_loop(void* args);
-int serve_customer(int socket, int t_id, int s_id);
+int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread);
 int get_customer_info(int socket, struct clientInformation* c);
 int get_customer_ticket(int socket, struct clientInformation* c);
 int signal_write(int train);
