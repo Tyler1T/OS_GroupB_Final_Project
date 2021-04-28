@@ -57,27 +57,6 @@ void addCustomer(struct clientInformation *customer, int new) {
     information
 */
 void changeOldCustomer(struct clientInformation *customer){
-    // FILE* summary = fopen("Summary.txt", "r+");
-    // char buffer[1024];
-    // int line = findCustomer(customer);
-    // int counter = 0;
-    // while((fgets(buffer, 1024, summary)) != NULL){
-    //     printf("Line: %d\n", counter);
-    //     if(counter == line){
-    //         fprintf(summary, "%d, ", customer->ticket);
-    //         fprintf(summary, "%s, ", customer->ClientName);
-    //         fprintf(summary, "%s, ", customer->DateOfBirth);
-    //         fprintf(summary, "%s, ", customer->Gender);
-    //         fprintf(summary, "%d, ", customer->GovernmentID);
-    //         fprintf(summary, "%s, ", customer->DateOfTravel);
-    //         fprintf(summary, "%d, ", customer->NumberOfTravelers);
-    //         fprintf(summary, "%s\n", customer->seats);
-    //     }else{
-    //         fprintf(summary, "%s", buffer);
-    //     }
-    //     counter++;
-    // }
-    // fclose(summary);
     deleteCustomer(customer);
     addCustomer(customer,0);
 }
@@ -95,12 +74,15 @@ void printCustomerInfo(struct clientInformation *customer, char *output){
 
     while((fgets(buffer, 1024, summary)) != NULL){
         if(counter == line){
-            strcpy(output, buffer);
+            strcpy(output, "Inquiry results: ");
+            strcat(output, buffer);
             fclose(summary);
             return;
         }
+
         counter++;
     }
+    strcpy(output, "No results found");
     fclose(summary);
 }
 
