@@ -462,6 +462,8 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             createCustomer(&c);
             signal_read(SUMMARY);
             int train = get_train(&c);
+            char original_seats[100];
+            strcpy(original_seats,c.seats);
             if (train == -1) {
                 snprintf(m,1000,"1The date for this train has passed, cannot modify reservation.\n");
                 send(socket, &m, sizeof(m), MSG_NOSIGNAL);
@@ -477,10 +479,11 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             if (verify_selection(socket, train, &c, m) == -1) continue;
             add_to_train(train, &c, c.seats);
             signal_write(train);
+            snprintf(m,1000,"1Reservation modified.\n");
+            snprintf(c.modified,200,"Reservation modified by server %d. Original seats: [%s]",s_id,original_seats);
             wait_write(SUMMARY);
             changeOldCustomer(&c);
             signal_write(SUMMARY);
-            snprintf(m,1000,"1Reservation modified.\n");
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
         }
@@ -631,6 +634,7 @@ int main(int argc, char const *argv[]) {
     struct sockaddr_in address;
     int server_fd = create_socket(port, &address);
     struct customer_queue q;
+    q.port = port;
     initialize_semaphores_threads(&q, reset);
     server_loop(server_fd,port,&address,&q);
     return 0;
