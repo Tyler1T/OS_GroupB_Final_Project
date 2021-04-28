@@ -44,8 +44,15 @@ void addCustomer(struct clientInformation *customer, int new) {
     fprintf(summary, "%d, ", customer->GovernmentID);
     fprintf(summary, "%s, ", customer->DateOfTravel);
     fprintf(summary, "%d, ", customer->NumberOfTravelers);
-    // fprintf(summary, "%d, ", customer->MenuOption);
-    fprintf(summary, "%s\n", customer->seats);
+    fprintf(summary, "%s, ", customer->seats);
+
+    if(new == 0){
+        fprintf(summary, "%d, ", customer->server);
+        fprintf(summary, "%s\n", customer->modified);
+    }else{
+        fprintf(summary, "%d\n", customer->server);
+    }
+
 
     fclose(summary);
 }
@@ -169,7 +176,8 @@ void createCustomer(struct clientInformation *customer){
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->GovernmentID);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^,]",  customer->DateOfTravel);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->NumberOfTravelers);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^\n]",  customer->seats);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^,]",  customer->seats);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^,], %[\n]",  customer->modified);
             line++;
             break;
         }
