@@ -73,11 +73,6 @@ int change_read_count(int train, int offset) {
 
 int verify_enough_seats(int socket, int train, struct clientInformation* c) {
     char m[1000];
-    if (train == -1) {
-        strcpy(m,"1Sorry, there is no train available for the selected date.\nReservation cancelled.\n");
-        send(socket, &m, sizeof(m), MSG_NOSIGNAL);
-        return -1;
-    }
     int available = seatChecker(train);
     if ((c->NumberOfTravelers) > available) {
         snprintf(m,1000,"1Sorry, there are only %d seats availble for the selected date.\nReservation cancelled.\n",available);
@@ -122,7 +117,7 @@ int confirm_modify(int socket, struct clientInformation* c) {
     read(socket, &m, sizeof(m));
     if (strcmp(m,"yes") == 0) {
         int n;
-        snprintf(m,1000,"0What is you new desired number of travelers [up to %d]? ",c->NumberOfTravelers);
+        snprintf(m,1000,"0What is your new desired number of travelers [up to %d]? ",c->NumberOfTravelers);
         send(socket, &m, sizeof(m), MSG_NOSIGNAL);
         read(socket, &m, sizeof(m));
         sscanf(m,"%d",&n);
@@ -225,17 +220,36 @@ int verify_selection(int socket, int train, struct clientInformation* c, char* m
     char n[1000];
     strcpy(n,m);
     printf("%s\n",n);
+    char seat[3];
+    int offset;
     for (int i=0; i<c->NumberOfTravelers; i++) {
-        if (i>0) memmove(n, n+3, 1000);
-        char seat[3];
-        sscanf(n,"%2c",seat);
+        if (sscanf(n," %2c%n",seat,&offset) != 1) {
+            printf("seat verification failed.\n");
+            signal_write(train);
+            char msg[1000];
+            strcpy(msg,"1\nError: not enough seats were selected. Reservation cancelled.\n");
+            send(socket, &msg, sizeof(msg), MSG_NOSIGNAL);
+            return -1;
+        }
+        memmove(n, n+offset, 1000);
         int row = seat[0] - 65;
         int column = seat[1] - 49;
         if (check_seat(train,row,column) == -1) {
             printf("seat verification failed.\n");
             signal_write(train);
+            char msg[1000];
+            strcpy(msg,"1\nError: one or more of the selected seats is not availble. Reservation cancelled.\n");
+            send(socket, &msg, sizeof(msg), MSG_NOSIGNAL);
             return -1;
         }
+    }
+    if (sscanf(n," %2c%n",seat,&offset) == 1) {
+        printf("seat verification failed.\n");
+        signal_write(train);
+        char msg[1000];
+        strcpy(msg,"1\nError: too many seats were selected. Reservation cancelled.\n");
+        send(socket, &msg, sizeof(msg), MSG_NOSIGNAL);
+        return -1;
     }
     strcpy(c->seats, m);
     return 0;
@@ -247,10 +261,11 @@ int add_to_train(int train, struct clientInformation* c, char* m) {
     printf("%s\n",output);
     char n[1000];
     strcpy(n,m);
+    char seat[3];
+    int offset;
     for (int i=0; i<c->NumberOfTravelers; i++) {
-        if (i>0) memmove(n, n+3, 1000);
-        char seat[3];
-        sscanf(n,"%2c",seat);
+        sscanf(n," %2c%n",seat,&offset);
+        memmove(n, n+offset, 1000);
         int row = seat[0] - 65;
         int column = seat[1] - 49;
         write_seat(train,row,column,1);
@@ -266,10 +281,12 @@ int remove_from_train(struct clientInformation* c, int train) {
     printf("%s\n",output);
     char n[100];
     strcpy(n,c->seats);
+    char seat[3];
+    int offset;
+    printf("num: %d\n seats: %s\n",c->NumberOfTravelers,n);
     for (int i=0; i<c->NumberOfTravelers; i++) {
-        if (i>0) memmove(n, n+3, 100);
-        char seat[3];
-        sscanf(n,"%2c",seat);
+        sscanf(n," %2c%n",seat,&offset);
+        memmove(n, n+offset, 1000);
         int row = seat[0] - 65;
         int column = seat[1] - 49;
         write_seat(train,row,column,0);
@@ -354,6 +371,7 @@ int check_thread_permission(int id, int train, int seats, int* seats_for_thread)
     if (seats <= 0) return -1;
     if (train <= 0) return -1;
     while (1) {
+        wait_write(train);
         largest = 1;
         for (int i=0; i<NUM_THREADS; i++) {
             if (seats_for_thread[id+(train-1)*NUM_THREADS] < seats_for_thread[i+(train-1)*NUM_THREADS]) {
@@ -363,6 +381,7 @@ int check_thread_permission(int id, int train, int seats, int* seats_for_thread)
             }
         }
         if (largest == 1) return 0;
+        signal_write(train);
         sleep(1);
     }
 }
@@ -402,11 +421,15 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
                 if (strcmp(c.DateOfTravel,date) == 0) train = 2;
                 else train = -1;
             }
+            if (train == -1) {
+                strcpy(m,"1Sorry, there is no train available for the selected date.\nReservation cancelled.\n");
+                send(socket, &m, sizeof(m), MSG_NOSIGNAL);
+                return -1;
+            }
             strcpy(m,"1Please wait...\n");
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             strcpy(m,"");
             if (check_thread_permission(t_id,train, c.NumberOfTravelers,seats_for_thread) == -1) continue;
-            wait_write(train);
             if (verify_enough_seats(socket, train, &c) == -1) continue;
             if (confirm_purchase(socket, train, &c) == -1) continue;
             send_available_seats(socket, train, &c);
@@ -417,7 +440,7 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             seats_for_thread[t_id+NUM_THREADS] = 0;
             seats_for_thread[t_id] = 0;
             wait_write(SUMMARY);
-            addNewCustomer(&c);
+            addCustomer(&c,1);
             signal_write(SUMMARY);
             snprintf(m,1000,"1Reservation confirmed! Your ticket number is %d.\n",c.ticket);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
@@ -452,6 +475,7 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             send_available_seats(socket, train, &c);
             read(socket, &m, sizeof(m));
             if (verify_selection(socket, train, &c, m) == -1) continue;
+            add_to_train(train, &c, c.seats);
             signal_write(train);
             wait_write(SUMMARY);
             changeOldCustomer(&c);

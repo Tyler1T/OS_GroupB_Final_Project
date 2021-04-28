@@ -75,7 +75,7 @@ int connect_to_server(char* ip_addr, int port);
 bool valid_ip(char *ip);
 int main(int argc, char const *argv[]);
 
-void addNewCustomer(struct clientInformation *customer);
+void addCustomer(struct clientInformation *customer, int new);
 void changeOldCustomer(struct clientInformation *customer);
 void deleteCustomer(struct clientInformation *customer);
 void printCustomerInfo(struct clientInformation *customer, char *output);

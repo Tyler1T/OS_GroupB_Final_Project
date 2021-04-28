@@ -8,32 +8,34 @@
     determines if a customer is in the summary file or not
  */
 
-int main(int argc, char const *argv[]) {
-    struct clientInformation c;
-    struct clientInformation *info = &c;
-    info->NumberOfTravelers = 3;
-    char buffer[1024];
-    createCustomer(info);
-    printCustomerInfo(info, buffer);
-    info->NumberOfTravelers = 45;
-    changeOldCustomer(info);
-    printCustomerInfo(info, buffer);
-    printf("%d\n", info->ticket);
-
-
-    return 0;
-}
+// int main(int argc, char const *argv[]) {
+//     struct clientInformation c;
+//     struct clientInformation *info = &c;
+//     info->NumberOfTravelers = 3;
+//     char buffer[1024];
+//     createCustomer(info);
+//     printCustomerInfo(info, buffer);
+//     info->NumberOfTravelers = 45;
+//     changeOldCustomer(info);
+//     printCustomerInfo(info, buffer);
+//     printf("%d\n", info->ticket);
+//
+//
+//     return 0;
+// }
 
 
 /*
     The addNewCustomer function takes a new customers information and apends
     it to the end of the summary.txt, it also sets the customer ticket number
 */
-void addNewCustomer(struct clientInformation *customer){
+void addCustomer(struct clientInformation *customer, int new) {
     FILE* summary = fopen("Summary.txt", "a");
 
-    customer->ticket = -1;
-    customer->ticket = findCustomer(customer);
+    if (new == 1) {
+        customer->ticket = -1;
+        customer->ticket = findCustomer(customer);
+    }
 
     fprintf(summary, "%d, ", customer->ticket);
     fprintf(summary, "%s, ", customer->ClientName);
@@ -42,7 +44,7 @@ void addNewCustomer(struct clientInformation *customer){
     fprintf(summary, "%d, ", customer->GovernmentID);
     fprintf(summary, "%s, ", customer->DateOfTravel);
     fprintf(summary, "%d, ", customer->NumberOfTravelers);
-    fprintf(summary, "%d, ", customer->MenuOption);
+    // fprintf(summary, "%d, ", customer->MenuOption);
     fprintf(summary, "%s\n", customer->seats);
 
     fclose(summary);
@@ -55,8 +57,29 @@ void addNewCustomer(struct clientInformation *customer){
     information
 */
 void changeOldCustomer(struct clientInformation *customer){
+    // FILE* summary = fopen("Summary.txt", "r+");
+    // char buffer[1024];
+    // int line = findCustomer(customer);
+    // int counter = 0;
+    // while((fgets(buffer, 1024, summary)) != NULL){
+    //     printf("Line: %d\n", counter);
+    //     if(counter == line){
+    //         fprintf(summary, "%d, ", customer->ticket);
+    //         fprintf(summary, "%s, ", customer->ClientName);
+    //         fprintf(summary, "%s, ", customer->DateOfBirth);
+    //         fprintf(summary, "%s, ", customer->Gender);
+    //         fprintf(summary, "%d, ", customer->GovernmentID);
+    //         fprintf(summary, "%s, ", customer->DateOfTravel);
+    //         fprintf(summary, "%d, ", customer->NumberOfTravelers);
+    //         fprintf(summary, "%s\n", customer->seats);
+    //     }else{
+    //         fprintf(summary, "%s", buffer);
+    //     }
+    //     counter++;
+    // }
+    // fclose(summary);
     deleteCustomer(customer);
-    addNewCustomer(customer);
+    addCustomer(customer,0);
 }
 
 /*
@@ -92,6 +115,7 @@ void deleteCustomer(struct clientInformation *customer){
     char buffer[1024];
     int counter = 0;
     int line = findCustomer(customer);
+    printf("line: %d",line);
     while((fgets(buffer, 1024, summary)) != NULL){
         if(counter != line){
             fprintf(temp, "%s", buffer);
@@ -163,7 +187,7 @@ void createCustomer(struct clientInformation *customer){
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->GovernmentID);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^,]",  customer->DateOfTravel);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->NumberOfTravelers);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^\n]",  customer->seats);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^\n]",  customer->seats);
             line++;
             break;
         }
