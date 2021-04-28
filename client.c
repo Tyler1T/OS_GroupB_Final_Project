@@ -60,7 +60,11 @@ int main(int argc, char const *argv[]) {
     while (1) {
         strcpy(m,"");
         if (a != '1') {
-            scanf("%1000[^\n]",m);
+            while (strlen(m) == 0) {
+                scanf("%1000[^\n]",m);
+                char z;
+                if (strlen(m) == 0) scanf("%c",&z);
+            }
             while ((a = getchar()) != '\n' && a != EOF) { } // flush input steam.
             send(sock, &m, sizeof(m), 0);
         }
