@@ -286,7 +286,7 @@ int remove_from_train(struct clientInformation* c, int train) {
     printf("num: %d\n seats: %s\n",c->NumberOfTravelers,n);
     for (int i=0; i<c->NumberOfTravelers; i++) {
         sscanf(n," %2c%n",seat,&offset);
-        memmove(n, n+offset, 1000);
+        memmove(n, n+offset, 100);
         int row = seat[0] - 65;
         int column = seat[1] - 49;
         write_seat(train,row,column,0);
@@ -389,11 +389,11 @@ int check_thread_permission(int id, int train, int seats, int* seats_for_thread)
 int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
     const struct clientInformation empty_struct;
     struct clientInformation c;
-    c.server = s_id;
     char m[1000];
     int first = 1;
     while (1) {
         c = empty_struct;
+        c.server = s_id;
         if (first) {
             snprintf(m,1000,"0Hello! My name is THREAD-%d, How may I assist you today?\n\t1. Make a reservation.\n\t2. Inquiry about a ticket.\n\t3. Modify the reservation.\n\t4. Cancel the reservation.\n\t5. Exit the program.\n",t_id);
             first = 0;
@@ -452,7 +452,7 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             wait_read(SUMMARY);
             printCustomerInfo(&c,results);
             signal_read(SUMMARY);
-            snprintf(m,1000,"1Inquiry Results:\n%s\n",results);
+            snprintf(m,1000,"1%s\n",results);
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
             continue;
         }
