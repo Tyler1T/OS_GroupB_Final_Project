@@ -2,7 +2,7 @@
 
 to compile:
     gcc client.c -o client
-    gcc server.c TrainSeatChecker.c Summary.c -o server -pthread
+    gcc server.c AdditionalFunction.c Summary.c -o server -pthread
 
 to run:
     ./server 2
@@ -11,5 +11,14 @@ in another terminal:
     ./client 2
     NOTE: [1, 2, or 3 indicates server number]
 
-NOTE: when the client file is executed, it attempts to connect to the specified server. if successful, the server will respond with a menu once a thread becomes available.
-currently, the only menu option that does anything is option 1 ("make a reservation"). the server asks the customer for information and then checks to see if there are enough seats available on the train. no reservation is made as of now.
+NOTES:
+when the client file is executed, it attempts to connect to the specified server. if successful, the server will respond with a menu once a thread becomes available.
+
+we have 3 servers, each with 3 threads.
+we have 2 trains, train_1 = today's date, train_2 = tomorrow's date.
+each train has 20 seats.
+
+when modifying, we only allow customers to change which seats are reserved, or reduce the number of seats. additional seats requires a new reservation.
+
+only one thread is allowed to access the train1.txt and train2.txt files at a time,
+but multiple threads can read summary.txt at one time as long as no other thread is  writing to it.
