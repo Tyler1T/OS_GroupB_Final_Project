@@ -14,11 +14,13 @@
     The addNewCustomer function takes a new customers information and apends
     it to the end of the summary.txt, it also sets the customer ticket number
 */
-void addNewCustomer(struct clientInformation *customer){
+void addCustomer(struct clientInformation *customer, int new) {
     FILE* summary = fopen("Summary.txt", "a");
 
-    customer->ticket = -1;
-    customer->ticket = findCustomer(customer);
+    if (new == 1) {
+        customer->ticket = -1;
+        customer->ticket = findCustomer(customer);
+    }
 
     fprintf(summary, "%d, ", customer->ticket);
     fprintf(summary, "%s, ", customer->ClientName);
@@ -27,8 +29,15 @@ void addNewCustomer(struct clientInformation *customer){
     fprintf(summary, "%d, ", customer->GovernmentID);
     fprintf(summary, "%s, ", customer->DateOfTravel);
     fprintf(summary, "%d, ", customer->NumberOfTravelers);
-    fprintf(summary, "%d, ", customer->MenuOption);
-    fprintf(summary, "%s\n", customer->seats);
+    fprintf(summary, "%s, ", customer->seats);
+
+    if(new == 0){
+        fprintf(summary, "%d, ", customer->server);
+        fprintf(summary, "%s\n", customer->modified);
+    }else{
+        fprintf(summary, "%d\n", customer->server);
+    }
+
 
     fclose(summary);
 }
@@ -41,7 +50,7 @@ void addNewCustomer(struct clientInformation *customer){
 */
 void changeOldCustomer(struct clientInformation *customer){
     deleteCustomer(customer);
-    addNewCustomer(customer);
+    addCustomer(customer,0);
 }
 
 /*
@@ -56,12 +65,15 @@ void printCustomerInfo(struct clientInformation *customer, char *output){
 
     while((fgets(buffer, 1024, summary)) != NULL){
         if(counter == line){
-            strcpy(output, buffer);
+            strcpy(output, "Inquiry results: ");
+            strcat(output, buffer);
             fclose(summary);
             return;
         }
+
         counter++;
     }
+    strcpy(output, "No results found");
     fclose(summary);
 }
 
@@ -76,6 +88,7 @@ void deleteCustomer(struct clientInformation *customer){
     char buffer[1024];
     int counter = 0;
     int line = findCustomer(customer);
+    printf("line: %d",line);
     while((fgets(buffer, 1024, summary)) != NULL){
         if(counter != line){
             fprintf(temp, "%s", buffer);
@@ -155,7 +168,10 @@ void createCustomer(struct clientInformation *customer){
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->GovernmentID);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^,]",  customer->DateOfTravel);
             sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->NumberOfTravelers);
-            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^\n]",  customer->seats);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^,]",  customer->seats);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %d",  &customer->server);
+            sscanf(buffer, "%*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %*[^,], %[^\n]",  customer->modified);
+
             line++;
             break;
         }
