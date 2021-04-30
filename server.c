@@ -451,6 +451,8 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             if (verify_selection(socket, train, &c, m) == -1) continue; // if failed, return to menu and release semaphore.
             add_to_train(train, &c, m); // update train file.
             signal_write(train); // release train semaphore.
+            seats_for_thread[t_id] = 0;
+            seats_for_thread[t_id+NUM_THREADS] = 0; // set requested seats to 0 in shared array.
             wait_write(SUMMARY);
             addCustomer(&c,1); // update summary file after waiting for access.
             signal_write(SUMMARY);
