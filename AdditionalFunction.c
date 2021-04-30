@@ -1,10 +1,12 @@
 // GROUP B
 // Benjamin Welch
-// beb.welch@okstate.edu
+// ben.welch@okstate.edu
 
 
 #include "header.h"
 
+
+// A function to get calculate tomorrows date and return it for use in checking the correct date by the client
 int GetTomorrowDate(char *tomorrowsDate)
 {
     FILE *fp;
@@ -21,10 +23,6 @@ int GetTomorrowDate(char *tomorrowsDate)
     // filled with the corresponding values
     struct tm *local = localtime(&now);
 
-    hours = local->tm_hour;         // get hours since midnight (0-23)
-    minutes = local->tm_min;        // get minutes passed after the hour (0-59)
-    seconds = local->tm_sec;        // get seconds passed after a minute (0-59)
-
     day = local->tm_mday;            // get day of month (1 to 31)
     month = local->tm_mon + 1;      // get month of year (0 to 11)
     year = local->tm_year + 1900;   // get year since 1900
@@ -38,13 +36,14 @@ int GetTomorrowDate(char *tomorrowsDate)
     fp = fopen("dates.txt", "r");
 
     fgets(tomorrowsDate, 11, fp);
-    // printf("%s", tomorrowsDate);
     fclose(fp);
 
 
     return 0;
 }
 
+
+// A function to get calculate todays date and return it for use in checking the correct date by the client
 int GetTodayDate(char *todaysDate)
 {
     FILE *fp;
@@ -75,12 +74,14 @@ int GetTodayDate(char *todaysDate)
     fp = fopen("dates.txt", "r");
 
     fgets(todaysDate, 11, fp);
-    // printf("%s", todaysDate);
     fclose(fp);
 
     return 0;
 }
 
+
+// This function is to check through the selected train file and count how many seats are not taken 
+// and then return that value to the server.
 int seatChecker(int trainNum)
 {
    FILE *fp ;
