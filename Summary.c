@@ -5,24 +5,9 @@
  * Email: <tyler.m.tucker@okstate.edu>
  * Date: April 19th, 2020
  * Program Description: This file takes input from the server and then
-    determines if a customer is in the summary file or not
+    determines if a customer is in the summary file or not. The functions can
+    also change information in the summary file and delete customers completely
  */
-
-int main(int argc, char const *argv[]) {
-    struct clientInformation c;
-    struct clientInformation *info = &c;
-    info->NumberOfTravelers = 3;
-    char buffer[1024];
-    createCustomer(info);
-    printCustomerInfo(info, buffer);
-    info->NumberOfTravelers = 45;
-    changeOldCustomer(info);
-    printCustomerInfo(info, buffer);
-    printf("%d\n", info->ticket);
-
-
-    return 0;
-}
 
 
 /*
@@ -67,7 +52,6 @@ void printCustomerInfo(struct clientInformation *customer, char *output){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
     int line = findCustomer(customer);
-    //printf("ticket: %d\nline: %d\n",customer->ticket,line);
     int counter = 0;
 
     while((fgets(buffer, 1024, summary)) != NULL){
@@ -130,6 +114,10 @@ int findCustomer(struct clientInformation *customer){
     return line;
 }
 
+/*
+    findCustomerTicket uses a ticket number to find the customer in the summary
+    file then returns what line to customer is on if they exist and -1 if they don't
+*/
 int findCustomerTicket(int ticket){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
@@ -147,6 +135,10 @@ int findCustomerTicket(int ticket){
     return line;
 }
 
+/*
+    createCustomer function take a customer's struct and puts their information
+    into the summary text file
+*/
 void createCustomer(struct clientInformation *customer){
     FILE* summary = fopen("Summary.txt", "r");
     char buffer[1024];
