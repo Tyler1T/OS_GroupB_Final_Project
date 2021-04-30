@@ -68,7 +68,7 @@ int change_read_count(int offset) {
         fclose(fp);
     }
     if (offset == 0) return num;
-    fp = fopen ("summary_read_count.txt", "r");
+    fp = fopen ("summary_read_count.txt", "w");
     fprintf(fp,"%d",num+offset);
     fclose(fp);
     return num+offset; // return new readcount
