@@ -80,7 +80,7 @@ int GetTodayDate(char *todaysDate)
 }
 
 
-// This function is to check through the selected train file and count how many seats are not taken 
+// This function is to check through the selected train file and count how many seats are not taken
 // and then return that value to the server.
 int seatChecker(int trainNum)
 {

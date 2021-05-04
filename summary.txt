@@ -1,2 +1,0 @@
-0, Nathan Baker, 05/02/2000, M, 4, 05/04/2021, 3, A1 A2 A3, 3
-1, Luke Thompson, 1, 1, 1, 05/04/2021, 2, A4 A5, 3, Reservation modified by server 3. Original seats: [D1 D2]
