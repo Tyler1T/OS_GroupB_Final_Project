@@ -49,7 +49,7 @@ void addCustomer(struct clientInformation *customer, int new) {
     information
 */
 void changeOldCustomer(struct clientInformation *customer){
-    deleteCustomer(customer);
+    deleteCustomer(customer,1);
     addCustomer(customer,0);
 }
 
@@ -82,7 +82,7 @@ void printCustomerInfo(struct clientInformation *customer, char *output){
     summary file, it then deletes that person by writing everyone else to a temp
     file and then deleting the summary file and renaming the temp file
 */
-void deleteCustomer(struct clientInformation *customer){
+void deleteCustomer(struct clientInformation *customer, int modifying){
     FILE* summary = fopen("Summary.txt", "r");
     FILE* temp = fopen("temp.txt", "a");
     char buffer[1024];
@@ -92,6 +92,10 @@ void deleteCustomer(struct clientInformation *customer){
     while((fgets(buffer, 1024, summary)) != NULL){
         if(counter != line){
             fprintf(temp, "%s", buffer);
+        } else {
+            if (modifying == 0) {
+                fprintf(temp, "%d, Reservation was cancelled.\n",customer->ticket);
+            }
         }
         counter++;
     }

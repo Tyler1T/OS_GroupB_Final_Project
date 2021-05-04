@@ -69,6 +69,7 @@ int change_read_count(int offset) {
     }
     if (offset == 0) return num;
     fp = fopen ("summary_read_count.txt", "w");
+    printf("%d,%d,%d\n",num, offset,num+offset);
     fprintf(fp,"%d",num+offset);
     fclose(fp);
     return num+offset; // return new readcount
@@ -130,7 +131,6 @@ int confirm_modify(int socket, struct clientInformation* c) {
         if (n > c->NumberOfTravelers || n < 1) { // ensure that customer requested a valid number of seats.
             snprintf(m,1000,"1Invalid selection. Modification cancelled.\n");
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
-            read(socket, &m, sizeof(m));
             return -1; // send customer back to menu.
         }
         return n; // return the new NumberOfTravelers
@@ -437,7 +437,7 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             if (train == -1) {
                 strcpy(m,"1Sorry, there is no train available for the selected date.\nReservation cancelled.\n");
                 send(socket, &m, sizeof(m), MSG_NOSIGNAL);
-                return -1;
+                continue;
             }
             strcpy(m,"1Please wait...\n");
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);
@@ -489,7 +489,7 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             char original_seats[100];
             strcpy(original_seats,c.seats);
             if (train == -1) {
-                snprintf(m,1000,"1The date for this train has passed, cannot modify reservation.\n");
+                snprintf(m,1000,"1Reservation not found or date has passed, cannot modify reservation.\n");
                 send(socket, &m, sizeof(m), MSG_NOSIGNAL);
                 continue; // return to menu.
             }
@@ -523,7 +523,7 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             signal_read(SUMMARY);
             int train = get_train(&c); // determine which train was used.
             if (train == -1) {
-                snprintf(m,1000,"1The date for this train has passed, no need to cancel reservation.\n");
+                snprintf(m,1000,"1Reservation not found or date has passed, no need to cancel reservation.\n");
                 send(socket, &m, sizeof(m), MSG_NOSIGNAL);
                 continue; // return to menu.
             }
@@ -532,7 +532,7 @@ int serve_customer(int socket, int t_id, int s_id, int* seats_for_thread) {
             remove_from_train(&c,train); // remove reservation from train after acquiring semaphore.
             signal_write(train);
             wait_write(SUMMARY);
-            deleteCustomer(&c); // remove line from summary file after acquiring semaphore.
+            deleteCustomer(&c,0); // remove line from summary file after acquiring semaphore.
             signal_write(SUMMARY);
             snprintf(m,1000,"1Reservation cancelled.\n");
             send(socket, &m, sizeof(m), MSG_NOSIGNAL);

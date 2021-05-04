@@ -84,7 +84,7 @@ int main(int argc, char const *argv[]);
 // Summary.c
 void addCustomer(struct clientInformation *customer, int new);
 void changeOldCustomer(struct clientInformation *customer);
-void deleteCustomer(struct clientInformation *customer);
+void deleteCustomer(struct clientInformation *customer, int modifying);
 void printCustomerInfo(struct clientInformation *customer, char *output);
 int findCustomer(struct clientInformation *customer);
 void createCustomer(struct clientInformation *customer);
